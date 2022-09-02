@@ -18,6 +18,33 @@ from filter_implementation.filter_constants import \
     CALL_ONE_ELSE_PUT_MINUS_ONE, PROPER_RANDOM_SEED
 
 
+def main():
+    np.random.seed(PROPER_RANDOM_SEED)  # Fix the seed to keep same examples
+
+    plot_strike_example_data()
+    plot_strike_example_step_by_step()
+    plot_strike_safeguard_example_data()
+    plot_surface_example()
+    plot_dax_data()
+    # plot_dax_example_with_bounds()
+    plot_option_implied_CDFs()
+    # print_dax_data_latex()
+
+    # max_strike = 3
+    # max_expiry = 5
+    # plot_example_data_surface(max_strike, max_expiry)
+    #
+    # expiries = [1/365, 7/365, 14/365, 31/365, 60/365, 90/365, 180/365, 1, 2, 5]
+    # min_number_of_quotes_per_expiry = 5
+    # max_number_of_quotes_per_expiry = 10
+    #
+    # quote_surface = create_random_surface_example_data(max_strike, expiries, min_number_of_quotes_per_expiry,
+    #                                                    max_number_of_quotes_per_expiry)
+    # plot_call_premia_for_quote_surface_moneyness(quote_surface)
+    # quote_surface.filter_surface_forward(use_safeguard=True)
+    # plot_call_premia_for_quote_surface_moneyness(quote_surface)
+
+
 def surface_formula_example_data(strike, expiry):
     return max( (1 - 1/20*strike**2), 0.0)/(1.0 + expiry/20)
 
@@ -541,30 +568,6 @@ def plot_option_implied_CDFs():
     plot_CDF_for_quote_slice(filtered_quote_slice, number_of_points, strike_range3, label = "Filtered", color = 'b')
 
 
-''' main '''
-np.random.seed(PROPER_RANDOM_SEED)  # Fix the seed to keep same examples
-
-plot_strike_example_data()
-plot_strike_example_step_by_step()
-plot_strike_safeguard_example_data()
-plot_surface_example()
-plot_dax_data()
-#plot_dax_example_with_bounds()
-plot_option_implied_CDFs()
-# print_dax_data_latex()
-
-# max_strike = 3
-# max_expiry = 5
-# plot_example_data_surface(max_strike, max_expiry)
-#
-# expiries = [1/365, 7/365, 14/365, 31/365, 60/365, 90/365, 180/365, 1, 2, 5]
-# min_number_of_quotes_per_expiry = 5
-# max_number_of_quotes_per_expiry = 10
-#
-# quote_surface = create_random_surface_example_data(max_strike, expiries, min_number_of_quotes_per_expiry,
-#                                                    max_number_of_quotes_per_expiry)
-# plot_call_premia_for_quote_surface_moneyness(quote_surface)
-# quote_surface.filter_surface_forward(use_safeguard=True)
-# plot_call_premia_for_quote_surface_moneyness(quote_surface)
-
-plt.show()
+if __name__ == "__main__":
+    main()
+    plt.show()
