@@ -6,9 +6,9 @@
 
 
 from math import inf
-from Arbitrage_Based_Filtering_of_Option_Price_Data.py_lets_be_rational.lets_be_rational import black, \
+from py_lets_be_rational.lets_be_rational import black, \
     implied_volatility_from_a_transformed_rational_guess
-from Arbitrage_Based_Filtering_of_Option_Price_Data.py_lets_be_rational.exceptions import AboveMaximumException, \
+from py_lets_be_rational.exceptions import AboveMaximumException, \
     BelowIntrinsicException
 
 

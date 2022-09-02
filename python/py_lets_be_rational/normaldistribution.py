@@ -27,7 +27,7 @@ merchantability, fitness for a particular purpose, or non-infringement.
 ======================================================================================
 """
 
-# The asymptotic expansion  Φ(z) = φ(z)/|z|·[1-1/z^2+...],  Abramowitz & Stegun (26.2.12), suffices for Φ(z) to have
+# The asymptotic expansion  Φ(z) = φ(z)/|z|·[1-1/z^2+.],  Abramowitz & Stegun (26.2.12), suffices for Φ(z) to have
 # relative accuracy of 1.64E-16 for z<=-10 with 17 terms inside the square brackets (not counting the leading 1).
 # This translates to a maximum of about 9 iterations below, which is competitive with a call to erfc() and never
 # less accurate when z<=-10. Note that, as mentioned in section 4 (and discussion of figures 2 and 3) of George
@@ -38,12 +38,12 @@ merchantability, fitness for a particular purpose, or non-infringement.
 from __future__ import division
 from math import fabs, sqrt, exp, log
 
-from ..py_lets_be_rational.numba_helper import maybe_jit
-from ..py_lets_be_rational.constants import DBL_MAX
-from ..py_lets_be_rational.constants import DBL_EPSILON
-from ..py_lets_be_rational.constants import ONE_OVER_SQRT_TWO_PI
-from ..py_lets_be_rational.constants import ONE_OVER_SQRT_TWO
-from ..py_lets_be_rational.erf_cody import erfc_cody
+from py_lets_be_rational.numba_helper import maybe_jit
+from py_lets_be_rational.constants import DBL_MAX
+from py_lets_be_rational.constants import DBL_EPSILON
+from py_lets_be_rational.constants import ONE_OVER_SQRT_TWO_PI
+from py_lets_be_rational.constants import ONE_OVER_SQRT_TWO
+from py_lets_be_rational.erf_cody import erfc_cody
 
 norm_cdf_asymptotic_expansion_first_threshold = -10.0
 norm_cdf_asymptotic_expansion_second_threshold = -1 / sqrt(DBL_EPSILON)

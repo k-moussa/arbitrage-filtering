@@ -9,12 +9,12 @@ from scipy import interpolate
 from copy import deepcopy
 from math import exp, inf
 from mpl_toolkits.mplot3d import Axes3D
-from Arbitrage_Based_Filtering_of_Option_Price_Data.filter_implementation.quote_surface import QuoteSurface
-from Arbitrage_Based_Filtering_of_Option_Price_Data.filter_implementation.convert_price_data \
+from filter_implementation.quote_surface import QuoteSurface
+from filter_implementation.convert_price_data \
     import data_to_quote_slice, strikes_vols_and_premia_to_quote_surface
-from Arbitrage_Based_Filtering_of_Option_Price_Data.filter_implementation.volatility_functions \
+from filter_implementation.volatility_functions \
     import discounted_black
-from Arbitrage_Based_Filtering_of_Option_Price_Data.filter_implementation.filter_constants import \
+from filter_implementation.filter_constants import \
     CALL_ONE_ELSE_PUT_MINUS_ONE, PROPER_RANDOM_SEED
 
 

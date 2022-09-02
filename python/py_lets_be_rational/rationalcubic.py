@@ -36,10 +36,10 @@ merchantability, fitness for a particular purpose, or non-infringement.
 from __future__ import division
 from math import fabs, sqrt
 
-from ..py_lets_be_rational.numba_helper import maybe_jit
-from ..py_lets_be_rational.constants import DBL_EPSILON
-from ..py_lets_be_rational.constants import DBL_MIN
-from ..py_lets_be_rational.constants import DBL_MAX
+from py_lets_be_rational.numba_helper import maybe_jit
+from py_lets_be_rational.constants import DBL_EPSILON
+from py_lets_be_rational.constants import DBL_MIN
+from py_lets_be_rational.constants import DBL_MAX
 
 
 minimum_rational_cubic_control_parameter_value = -(1 - sqrt(DBL_EPSILON))

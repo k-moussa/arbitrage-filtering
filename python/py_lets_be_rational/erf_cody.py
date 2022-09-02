@@ -30,7 +30,7 @@ merchantability, fitness for a particular purpose, or non-infringement.
 from __future__ import division
 from math import floor, fabs, exp
 
-from ..py_lets_be_rational.numba_helper import maybe_jit
+from py_lets_be_rational.numba_helper import maybe_jit
 
 
 @maybe_jit(cache=True, nopython=True, nogil=True)

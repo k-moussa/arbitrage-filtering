@@ -27,7 +27,7 @@ merchantability, fitness for a particular purpose, or non-infringement.
 ======================================================================================
 """
 
-from ..py_lets_be_rational import constants
+from py_lets_be_rational import constants
 
 
 class VolatilityValueException(Exception):
