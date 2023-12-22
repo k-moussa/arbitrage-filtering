@@ -206,7 +206,7 @@ class QuoteSurface:
         filter_function = self.forward_surface_filter_for_index_with_safeguard if use_safeguard else \
             self.forward_surface_filter_for_index
 
-        if self.is_valid_expiry_index(1):
+        if self.is_valid_expiry_index(1):  # perform the following only if there is more than one expiry
             for index in range(1, self.number_of_slices):
                 filter_function(index)
                 self.filtered_slices_indices.append(index)
