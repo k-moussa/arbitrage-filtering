@@ -3,6 +3,7 @@
 from typing import Optional
 from ..globals import *
 from .quote_structures import QuoteSurface, QuoteSlice, Quote
+from .quote_map import transform_quote
 
 N_COLS: final = 6
 
@@ -89,21 +90,21 @@ class InternalQuoteProcessor(OptionQuoteProcessor):
                          strike_trans: StrikeTransform,
                          price_unit: PriceUnit) -> np.ndarray:
 
+        current_price_unit = self._quote_surface.price_unit
         quote_matrix = np.zeros(shape=(self._quote_surface.n_quotes(), N_COLS))
         row_index = 0
         for qs in self._quote_surface.slices:
             for q in qs.quotes:
                 quote_matrix[row_index, EXPIRY_INDEX] = qs.expiry
-                quote_matrix[row_index, STRIKE_INDEX] = q.get_transformed_strike(strike_trans, forward=qs.forward)
-
-                # q_trans = get_transformed_quote()
-                quote_matrix[row_index, MID_INDEX] = q(Side.mid)  # todo: transform the next three quotes price unit
-                quote_matrix[row_index, BID_INDEX] = q.bid
-                quote_matrix[row_index, ASK_INDEX] = q.ask
-                quote_matrix[row_index, LIQ_INDEX] = q.liq_proxy
+                
+                q_trans = transform_quote(q=q, price_unit=current_price_unit, target_price_unit=price_unit, 
+                                          expiry=qs.expiry, discount_factor=qs.discount_factor, forward=qs.forward)
+                quote_matrix[row_index, STRIKE_INDEX] = q_trans.get_transformed_strike(strike_trans, forward=qs.forward)
+                quote_matrix[row_index, MID_INDEX] = q_trans(Side.mid)  
+                quote_matrix[row_index, BID_INDEX] = q_trans.bid
+                quote_matrix[row_index, ASK_INDEX] = q_trans.ask
+                quote_matrix[row_index, LIQ_INDEX] = q_trans.liq_proxy
 
                 row_index += 1
 
         return quote_matrix
-
-
