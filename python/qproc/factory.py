@@ -1,7 +1,9 @@
 """ This module allows for creating instances of the OptionQuoteProcessor class. """
 
-from .globals import *
+from typing import Optional
 from.internal.input_checking import check_create_q_proc_args
+from .globals import *
+from .internal.option_quote_processor import InternalQuoteProcessor
 
 
 def create_q_proc(option_prices: np.ndarray,
@@ -28,11 +30,19 @@ def create_q_proc(option_prices: np.ndarray,
     """
 
     check_create_q_proc_args(option_prices=option_prices,
+                             price_unit=price_unit,
                              strikes=strikes,
                              expiries=expiries,
-                             liquidity_proxies=liquidity_proxies,
-                             filter_type=filter_type,
                              forwards=forwards,
-                             rates=rates)
+                             rates=rates,
+                             liquidity_proxies=liquidity_proxies,
+                             filter_type=filter_type)
 
-    pass  # todo
+    return InternalQuoteProcessor(option_prices=option_prices,
+                                  price_unit=price_unit,
+                                  strikes=strikes,
+                                  expiries=expiries,
+                                  forwards=forwards,
+                                  rates=rates,
+                                  liquidity_proxies=liquidity_proxies,
+                                  filter_type=filter_type)

@@ -5,6 +5,7 @@ from enum import Enum
 from abc import ABC, abstractmethod
 from typing import final
 
+DAYS_IN_YEAR: final = 365
 EXPIRY_INDEX: final = 0
 STRIKE_INDEX: final = 1
 MID_INDEX: final = 2

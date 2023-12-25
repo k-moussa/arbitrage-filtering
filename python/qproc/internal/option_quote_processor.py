@@ -70,21 +70,23 @@ class InternalQuoteProcessor(OptionQuoteProcessor):
 
                 self._quote_surface.add_slice(quote_slice)
 
-            bid, ask = sided_option_prices[i]
+            bid = sided_option_prices[i, 0]
+            ask = sided_option_prices[i, 1]
             strike = strikes[i]
-            liq_proxy = self._get_liquidity_proxy(liquidity_proxies[i], strike=strike, forward=forward)
+            liq_proxy = self._get_liquidity_proxy(liquidity_proxies, index=i, strike=strike, forward=forward)
             q = Quote(bid=bid, ask=ask, strike=strike, liq_proxy=liq_proxy)
             quote_slice.add_quote(q)
 
     @staticmethod
-    def _get_liquidity_proxy(liq_proxy: Optional[float],
+    def _get_liquidity_proxy(liq_proxies: Optional[np.ndarray],
+                             index: int,
                              strike: float,
                              forward: float) -> float:
 
-        if liq_proxy is None:
-            liq_proxy = -np.abs(strike/forward - 1.0)
+        if liq_proxies is None:
+            return -np.abs(strike/forward - 1.0)
 
-        return liq_proxy
+        return liq_proxies[index]
 
     def get_quote_matrix(self,
                          strike_trans: StrikeTransform,

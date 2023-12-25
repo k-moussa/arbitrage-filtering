@@ -1,9 +1,11 @@
 """ This module collects functionality for checking input arguments. """
 
+from typing import Optional
 from ..globals import *
 
 
 def check_create_q_proc_args(option_prices: np.ndarray,
+                             price_unit: PriceUnit,
                              strikes: np.ndarray,
                              expiries: np.ndarray,
                              forwards: np.ndarray,
