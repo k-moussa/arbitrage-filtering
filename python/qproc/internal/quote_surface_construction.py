@@ -79,6 +79,6 @@ def _get_liquidity_proxy(liq_proxies: Optional[np.ndarray],
                          forward: float) -> float:
 
     if liq_proxies is None:
-        return -np.abs(strike/forward - 1.0)
+        return 1.0 / (1.0 + np.abs(strike - forward))
 
     return liq_proxies[index]
