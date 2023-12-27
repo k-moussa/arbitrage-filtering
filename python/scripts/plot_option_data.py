@@ -15,22 +15,21 @@ def main():
                                           rates=option_data.rates)
 
     for price_unit in [qproc.PriceUnit.vol, qproc.PriceUnit.call]:
-        plot_quotes(quote_processor, strike_trans=qproc.StrikeTransform.strike, price_unit=price_unit)
+        plot_quotes(quote_processor, strike_unit=qproc.StrikeUnit.strike, price_unit=price_unit)
 
 
 def plot_quotes(quote_processor: qproc.OptionQuoteProcessor,
-                strike_trans: qproc.StrikeTransform,
+                strike_unit: qproc.StrikeUnit,
                 price_unit: qproc.PriceUnit):
 
-    # todo: return a df instead
-    quotes = quote_processor.get_quotes(strike_trans=strike_trans, price_unit=price_unit)
+    quotes = quote_processor.get_quotes(strike_unit=strike_unit, price_unit=price_unit)
 
     plt.figure()
     strikes = quotes[qproc.STRIKE_KEY]
     mid_prices = quotes[qproc.MID_KEY]
     plt.plot(strikes, mid_prices, marker='o')
 
-    plt.xlabel(strike_trans.name)
+    plt.xlabel(strike_unit.name)
     plt.ylabel(price_unit.name)
 
 

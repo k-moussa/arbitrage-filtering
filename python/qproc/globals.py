@@ -20,7 +20,7 @@ class PriceUnit(Enum):
     normalized_call = 2
 
 
-class StrikeTransform(Enum):
+class StrikeUnit(Enum):
     strike = 0
     moneyness = 1  # forward moneyness
     log_moneyness = 2
@@ -42,11 +42,11 @@ class OptionQuoteProcessor(ABC):
 
     @abstractmethod
     def get_quotes(self,
-                   strike_trans: StrikeTransform,
+                   strike_unit: StrikeUnit,
                    price_unit: PriceUnit) -> pd.DataFrame:
-        """ Returns a matrix of quotes in ascending order first by expiry and then by strike.
+        """ Returns the quotes sorted in ascending order by expiry (first) and strike (second).
 
-        :param strike_trans:
+        :param strike_unit:
         :param price_unit:
         :return:
         """

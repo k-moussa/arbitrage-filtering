@@ -3,7 +3,7 @@
 import bisect
 import numpy as np
 from typing import Optional, List
-from ..globals import Side, StrikeTransform, PriceUnit
+from ..globals import Side, StrikeUnit, PriceUnit
 
 
 class Quote:
@@ -54,22 +54,22 @@ class Quote:
             self.ask = price
 
     def get_transformed_strike(self,
-                               strike_trans: StrikeTransform,
+                               strike_unit: StrikeUnit,
                                forward: Optional[float] = None) -> float:
 
-        if strike_trans is StrikeTransform.strike:
+        if strike_unit is StrikeUnit.strike:
             return self.strike
-        elif strike_trans in [StrikeTransform.moneyness, StrikeTransform.log_moneyness]:
+        elif strike_unit in [StrikeUnit.moneyness, StrikeUnit.log_moneyness]:
             if forward is None:
-                raise RuntimeError(f"strike_trans {strike_trans.name} requires passing the forward.")
+                raise RuntimeError(f"strike_unit {strike_unit.name} requires passing the forward.")
 
             moneyness = self.strike / forward
-            if strike_trans is StrikeTransform.moneyness:
+            if strike_unit is StrikeUnit.moneyness:
                 return moneyness
             else:
                 return np.log(moneyness)
         else:
-            raise RuntimeError(f"unhandled strike_trans {strike_trans.name}.")
+            raise RuntimeError(f"unhandled strike_unit {strike_unit.name}.")
 
 
 class QuoteSlice:
@@ -91,8 +91,12 @@ class QuoteSlice:
 
 
 class QuoteSurface:
-    def __init__(self, price_unit: PriceUnit):
-        self.price_unit = price_unit
+    def __init__(self,
+                 price_unit: PriceUnit,
+                 strike_unit: StrikeUnit):
+
+        self.price_unit: PriceUnit = price_unit
+        self.strike_unit: StrikeUnit = strike_unit
         self.slices: List[QuoteSlice] = []
 
     def add_slice(self, quote_slice: QuoteSlice):
