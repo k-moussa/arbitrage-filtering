@@ -2,33 +2,35 @@
 
 import numpy as np
 from typing import Optional, List
-from abc import ABC, abstractmethod
 from .globals import ArbitrageFilter
 from .arbitrage_free_set import ArbitrageFreeSet
 from ..quote_structures import QuoteSurface, QuoteSlice, Quote, Side
-from ...globals import FloatOrArray
 
 
-class InternalArbitrageFilter(ArbitrageFilter, ABC):
+class StrikeFilter(ArbitrageFilter):
     def __init__(self,
                  quote_surface: QuoteSurface,
-                 smoothing_param: Optional[FloatOrArray]):
+                 smoothing_param: float):
 
         self.arbitrage_free_sets: List[ArbitrageFreeSet] = []
         self.quote_surface: QuoteSurface = quote_surface
 
         self._slice_index: Optional[int] = None
-        self._current_liq_sorted_quotes: List[Quote] = []
-        self._current_a: ArbitrageFreeSet = ArbitrageFreeSet()
-        self._current_a_complement: List[Quote] = []
+        self._current_liq_sorted_quotes: List[Quote] = None
+        self._current_a: ArbitrageFreeSet = None
+        self._current_a_complement: List[Quote] = None
+        self._initialize_current_variables()
 
         if smoothing_param is None:
             self.smoothing_params: np.ndarray = np.full(shape=(self.quote_surface.n_expiries()), fill_value=np.nan)
-        elif isinstance(smoothing_param, float):
+        else:
             self.smoothing_params: np.ndarray = np.full(shape=(self.quote_surface.n_expiries()),
                                                         fill_value=smoothing_param)
-        else:
-            self.smoothing_params = smoothing_param
+
+    def _initialize_current_variables(self):
+        self._current_liq_sorted_quotes: List[Quote] = []
+        self._current_a: ArbitrageFreeSet = ArbitrageFreeSet()
+        self._current_a_complement: List[Quote] = []
 
     def filter(self):
         for i in range(self.quote_surface.n_expiries()):
@@ -47,10 +49,16 @@ class InternalArbitrageFilter(ArbitrageFilter, ABC):
         smoothing_param = self.smoothing_params[self._slice_index]
         self.adjust_remaining_quotes(smoothing_param)
 
+        quote_slice = self._get_current_quote_slice()
+        quote_slice.quotes = self._current_a.get_arbitrage_free_quotes(exclude_strikes_0_and_inf=True)
+
+        self.arbitrage_free_sets.append(self._current_a)
+        self._initialize_current_variables()
+
     def set_liquidity_sorted_quotes(self):
         current_quote_slice = self._get_current_quote_slice()
         self._current_liq_sorted_quotes = current_quote_slice.quotes
-        self._current_liq_sorted_quotes.sort(key=lambda q: q.liq_proxy)
+        self._current_liq_sorted_quotes.sort(key=lambda q: q.liq_proxy, reverse=True)
         
     def _get_current_quote_slice(self) -> QuoteSlice:
         return self.quote_surface.slices[self._slice_index]
@@ -62,8 +70,25 @@ class InternalArbitrageFilter(ArbitrageFilter, ABC):
 
     def perform_process_iteration(self):
         q = self._current_liq_sorted_quotes.pop(0)
-        if not self._current_a.add_quote_if_feasible(q):
+        if not self._add_quote_if_feasible(q):
             self._current_a_complement.append(q)
+
+    def _add_quote_if_feasible(self, q: Quote) -> bool:
+        """ If q is feasible w.r.t. to the current arbitrage free set, adds q and returns True, else returns False. """
+
+        lower_bound = self._compute_lower_bound(q)
+        upper_bound = self._compute_lower_bound(q)
+        is_quote_feasible = lower_bound <= q.mid() <= upper_bound
+        if is_quote_feasible:
+            self._current_a.add_quote(q)
+
+        return is_quote_feasible
+
+    def _compute_lower_bound(self, q: Quote) -> float:
+        return self._current_a.compute_lower_bound(q)
+    
+    def _compute_upper_bound(self, q: Quote) -> float:
+        return self._current_a.compute_upper_bound(q)
             
     def adjust_remaining_quotes(self, smoothing_param: float):
         n_remaining_quotes = len(self._current_a_complement)
@@ -83,5 +108,5 @@ class InternalArbitrageFilter(ArbitrageFilter, ABC):
             raise RuntimeError("adjust is only meant for infeasible quotes")
 
         q.set_price(price=adjusted_price, side=Side.mid)
-        self._current_a.add_quote_if_feasible(q)
+        self._current_a.add_quote(q)
             

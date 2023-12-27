@@ -23,14 +23,8 @@ class ArbitrageFreeSet:
         else:
             return arbitrage_free_quotes
 
-    def add_quote_if_feasible(self, q: Quote) -> bool:
-        lower_bound = self.compute_lower_bound(q)
-        upper_bound = self.compute_upper_bound(q)
-        is_quote_feasible = lower_bound <= q.mid() <= upper_bound
-        if is_quote_feasible:
-            bisect.insort_left(self._sorted_quotes, q)
-
-        return is_quote_feasible
+    def add_quote(self, q: Quote):
+        bisect.insort_left(self._sorted_quotes, q)
 
     def compute_lower_bound(self, q: Quote) -> float:
         left_adjacent_quote = self._get_left_adjacent_quote(q)
@@ -40,8 +34,10 @@ class ArbitrageFreeSet:
 
         right_adjacent_quote = self._get_right_adjacent_quote(q)
         right_difference_quotient = self._compute_right_difference_quotient(q)
-        lower_bound_from_right_difference_quotient = right_adjacent_quote.mid() - right_difference_quotient * \
-            (right_adjacent_quote.strike - q.strike)
+        lower_bound_from_right_difference_quotient = right_adjacent_quote.mid()
+        if np.isfinite(right_adjacent_quote.strike):  # handle 0.0 * inf = nan
+            lower_bound_from_right_difference_quotient -= right_difference_quotient * \
+                                                          (right_adjacent_quote.strike - q.strike)
 
         return max(lower_bound_from_left_difference_quotient, lower_bound_from_right_difference_quotient)
 

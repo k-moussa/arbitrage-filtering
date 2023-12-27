@@ -4,4 +4,6 @@ from abc import ABC, abstractmethod
 
 
 class ArbitrageFilter(ABC):
-    pass  # todo
+    @abstractmethod
+    def filter(self):
+        """ Filters the quote surface passed to the filter. """

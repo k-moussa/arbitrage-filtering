@@ -1,9 +1,11 @@
 """ This module implements the InternalQuoteProcessor class. """
 
 import numpy as np
+from typing import Optional
 from ..globals import *
 from .quote_structures import QuoteSurface
 from .quote_transformation import transform_quote
+from .filter_factory import create_filter
 
 COL_NAMES: final = (EXPIRY_KEY, STRIKE_KEY, MID_KEY, BID_KEY, ASK_KEY, LIQ_KEY)
 
@@ -11,12 +13,16 @@ COL_NAMES: final = (EXPIRY_KEY, STRIKE_KEY, MID_KEY, BID_KEY, ASK_KEY, LIQ_KEY)
 class InternalQuoteProcessor(OptionQuoteProcessor):
     def __init__(self,
                  quote_surface: QuoteSurface,
-                 filter_type: FilterType):
-
-        if filter_type is not FilterType.na:
-            raise RuntimeError("filtering not implemented yet.")
+                 filter_type: FilterType,
+                 smoothing_param: Optional[float]):
 
         self._quote_surface: QuoteSurface = quote_surface
+
+        if filter_type is not FilterType.na:
+            arbitrage_filter = create_filter(quote_surface=quote_surface,
+                                             filter_type=filter_type,
+                                             smoothing_param=smoothing_param)
+            arbitrage_filter.filter()
 
     def get_quotes(self,
                    strike_unit: StrikeUnit,
