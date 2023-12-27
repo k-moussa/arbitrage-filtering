@@ -32,7 +32,11 @@ class Quote:
 
     def __call__(self, side: Side) -> float:
         if side is Side.mid:
-            return (self.bid + self.ask) / 2.0
+            is_mid_quote = self.bid == self.ask
+            if is_mid_quote:
+                return self.bid
+            else:
+                return (self.bid + self.ask) / 2.0
         elif side is Side.bid:
             return self.bid
         else:
