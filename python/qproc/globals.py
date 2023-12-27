@@ -39,6 +39,7 @@ class FilterType(Enum):
     na = 0
     strike = 1
     expiry = 2
+    discard = 3
 
 
 class OptionQuoteProcessor(ABC):

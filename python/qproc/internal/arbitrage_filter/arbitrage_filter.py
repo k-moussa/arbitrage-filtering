@@ -109,4 +109,14 @@ class StrikeFilter(ArbitrageFilter):
 
         q.set_price(price=adjusted_price, side=Side.mid)
         self._current_a.add_quote(q)
-            
+
+
+class DiscardFilter(StrikeFilter):
+    def __init__(self,
+                 quote_surface: QuoteSurface,
+                 smoothing_param: float):
+
+        super().__init__(quote_surface=quote_surface, smoothing_param=smoothing_param)
+
+    def adjust_remaining_quotes(self, smoothing_param: float):
+        pass  # do not add remaining quotes.
