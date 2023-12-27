@@ -53,24 +53,6 @@ class Quote:
         else:
             self.ask = price
 
-    def get_transformed_strike(self,
-                               strike_unit: StrikeUnit,
-                               forward: Optional[float] = None) -> float:
-
-        if strike_unit is StrikeUnit.strike:
-            return self.strike
-        elif strike_unit in [StrikeUnit.moneyness, StrikeUnit.log_moneyness]:
-            if forward is None:
-                raise RuntimeError(f"strike_unit {strike_unit.name} requires passing the forward.")
-
-            moneyness = self.strike / forward
-            if strike_unit is StrikeUnit.moneyness:
-                return moneyness
-            else:
-                return np.log(moneyness)
-        else:
-            raise RuntimeError(f"unhandled strike_unit {strike_unit.name}.")
-
 
 class QuoteSlice:
     def __init__(self,
