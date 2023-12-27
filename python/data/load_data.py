@@ -10,7 +10,8 @@ from qproc import PriceUnit
 
 class DataSetName(Enum):
     na = 0
-    spx500_5_feb_2018 = 1
+    example_data_afop = 1
+    spx500_5_feb_2018 = 2
 
 
 class OptionDataSet:
@@ -41,11 +42,23 @@ def get_option_data(ds_name: DataSetName) -> OptionDataSet:
     :return:
     """
 
-    if ds_name is DataSetName.spx500_5_feb_2018:
+    if ds_name is DataSetName.example_data_afop:
+        return get_example_data_afop()
+    elif ds_name is DataSetName.spx500_5_feb_2018:
         return get_spx500_ds()
     else:
         raise RuntimeError(f"get_data_set not implemented for data_set_name {ds_name.name}.")
 
+
+def get_example_data_afop() -> OptionDataSet:
+    df = _get_raw_data_set("example_data_afop.csv", index_col=None)
+    return OptionDataSet(option_prices=df['call_price'].values,
+                         price_unit=PriceUnit.call,
+                         strikes=df['strike'].values,
+                         expiries=df['expiry'].values,
+                         forwards=np.ones((2,)),
+                         rates=np.zeros((2,)),
+                         name=DataSetName.example_data_afop)
 
 def get_spx500_ds() -> OptionDataSet:
     df = _get_raw_data_set("spx500_5_feb_2018.csv", index_col=None)
