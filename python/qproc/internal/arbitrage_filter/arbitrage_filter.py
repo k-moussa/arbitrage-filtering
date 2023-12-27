@@ -77,7 +77,7 @@ class StrikeFilter(ArbitrageFilter):
         """ If q is feasible w.r.t. to the current arbitrage free set, adds q and returns True, else returns False. """
 
         lower_bound = self._compute_lower_bound(q)
-        upper_bound = self._compute_lower_bound(q)
+        upper_bound = self._compute_upper_bound(q)
         is_quote_feasible = lower_bound <= q.mid() <= upper_bound
         if is_quote_feasible:
             self._current_a.add_quote(q)
@@ -97,8 +97,8 @@ class StrikeFilter(ArbitrageFilter):
         
     def perform_adjust_iteration(self, smoothing_param: float):
         q = self._current_a_complement.pop(0)
-        lower_bound = self._current_a.compute_lower_bound(q)
-        upper_bound = self._current_a.compute_upper_bound(q)
+        lower_bound = self._compute_lower_bound(q)
+        upper_bound = self._compute_upper_bound(q)
 
         if q.mid() < lower_bound:
             adjusted_price = lower_bound + smoothing_param * (upper_bound - lower_bound)
