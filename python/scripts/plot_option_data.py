@@ -23,12 +23,11 @@ def plot_quotes(quote_processor: qproc.OptionQuoteProcessor,
                 price_unit: qproc.PriceUnit):
 
     # todo: return a df instead
-    quote_matrix = quote_processor.get_quote_matrix(strike_trans=strike_trans,
-                                                    price_unit=price_unit)
+    quotes = quote_processor.get_quotes(strike_trans=strike_trans, price_unit=price_unit)
 
     plt.figure()
-    strikes = quote_matrix[:, qproc.STRIKE_INDEX]
-    mid_prices = quote_matrix[:, qproc.MID_INDEX]
+    strikes = quotes[qproc.STRIKE_KEY]
+    mid_prices = quotes[qproc.MID_KEY]
     plt.plot(strikes, mid_prices, marker='o')
 
     plt.xlabel(strike_trans.name)

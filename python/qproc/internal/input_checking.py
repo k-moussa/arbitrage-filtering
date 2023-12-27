@@ -1,5 +1,6 @@
 """ This module collects functionality for checking input arguments. """
 
+import numpy as np
 from typing import Optional
 from ..globals import *
 

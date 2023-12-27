@@ -1,17 +1,17 @@
 """ This module collects all exposed types from the qproc package. """
 
-import numpy as np
+import pandas as pd
 from enum import Enum
 from abc import ABC, abstractmethod
 from typing import final
 
 DAYS_IN_YEAR: final = 365
-EXPIRY_INDEX: final = 0
-STRIKE_INDEX: final = 1
-MID_INDEX: final = 2
-BID_INDEX: final = 3
-ASK_INDEX: final = 4
-LIQ_INDEX: final = 5
+EXPIRY_KEY: final = 'expiry'
+STRIKE_KEY: final = 'strike'
+MID_KEY: final = 'mid'
+BID_KEY: final = 'bid'
+ASK_KEY: final = 'ask'
+LIQ_KEY: final = 'liq'
 
 
 class PriceUnit(Enum):
@@ -41,10 +41,10 @@ class FilterType(Enum):
 class OptionQuoteProcessor(ABC):
 
     @abstractmethod
-    def get_quote_matrix(self,
-                         strike_trans: StrikeTransform,
-                         price_unit: PriceUnit) -> np.ndarray:
-        """ Returns an (n_quotes, n_features) matrix of quotes in ascending order first by expiry and then by strike.
+    def get_quotes(self,
+                   strike_trans: StrikeTransform,
+                   price_unit: PriceUnit) -> pd.DataFrame:
+        """ Returns a matrix of quotes in ascending order first by expiry and then by strike.
 
         :param strike_trans:
         :param price_unit:

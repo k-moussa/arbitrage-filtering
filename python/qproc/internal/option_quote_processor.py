@@ -1,11 +1,12 @@
 """ This module implements the InternalQuoteProcessor class. """
 
+import numpy as np
 from typing import Optional
 from ..globals import *
 from .quote_structures import QuoteSurface, QuoteSlice, Quote
 from .quote_map import transform_quote
 
-N_COLS: final = 6
+COL_NAMES: final = (EXPIRY_KEY, STRIKE_KEY, MID_KEY, BID_KEY, ASK_KEY, LIQ_KEY)
 
 
 class InternalQuoteProcessor(OptionQuoteProcessor):
@@ -88,25 +89,25 @@ class InternalQuoteProcessor(OptionQuoteProcessor):
 
         return liq_proxies[index]
 
-    def get_quote_matrix(self,
-                         strike_trans: StrikeTransform,
-                         price_unit: PriceUnit) -> np.ndarray:
+    def get_quotes(self,
+                   strike_trans: StrikeTransform,
+                   price_unit: PriceUnit) -> pd.DataFrame:
 
         current_price_unit = self._quote_surface.price_unit
-        quote_matrix = np.zeros(shape=(self._quote_surface.n_quotes(), N_COLS))
+        quote_df = pd.DataFrame(np.nan, index=np.arange(self._quote_surface.n_quotes()), columns=COL_NAMES)
         row_index = 0
         for qs in self._quote_surface.slices:
             for q in qs.quotes:
-                quote_matrix[row_index, EXPIRY_INDEX] = qs.expiry
+                quote_df[EXPIRY_KEY].iloc[row_index] = qs.expiry
                 
                 q_trans = transform_quote(q=q, price_unit=current_price_unit, target_price_unit=price_unit, 
                                           expiry=qs.expiry, discount_factor=qs.discount_factor, forward=qs.forward)
-                quote_matrix[row_index, STRIKE_INDEX] = q_trans.get_transformed_strike(strike_trans, forward=qs.forward)
-                quote_matrix[row_index, MID_INDEX] = q_trans(Side.mid)  
-                quote_matrix[row_index, BID_INDEX] = q_trans.bid
-                quote_matrix[row_index, ASK_INDEX] = q_trans.ask
-                quote_matrix[row_index, LIQ_INDEX] = q_trans.liq_proxy
+                quote_df[STRIKE_KEY].iloc[row_index] = q_trans.get_transformed_strike(strike_trans, forward=qs.forward)
+                quote_df[MID_KEY].iloc[row_index] = q_trans(Side.mid)
+                quote_df[BID_KEY].iloc[row_index] = q_trans.bid
+                quote_df[ASK_KEY].iloc[row_index] = q_trans.ask
+                quote_df[LIQ_KEY].iloc[row_index] = q_trans.liq_proxy
 
                 row_index += 1
 
-        return quote_matrix
+        return quote_df
