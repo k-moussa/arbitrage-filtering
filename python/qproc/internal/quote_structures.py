@@ -32,15 +32,18 @@ class Quote:
 
     def __call__(self, side: Side) -> float:
         if side is Side.mid:
-            is_mid_quote = self.bid == self.ask
-            if is_mid_quote:
-                return self.bid
-            else:
-                return (self.bid + self.ask) / 2.0
+            return self.mid()
         elif side is Side.bid:
             return self.bid
         else:
             return self.ask
+
+    def mid(self) -> float:
+        is_mid_quote = self.bid == self.ask
+        if is_mid_quote:
+            return self.bid
+        else:
+            return (self.bid + self.ask) / 2.0
 
     def set_price(self,
                   price: float,
