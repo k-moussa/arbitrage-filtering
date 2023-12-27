@@ -14,7 +14,7 @@ def main():
                                           forwards=option_data.forwards,
                                           rates=option_data.rates)
 
-    for price_unit in [qproc.PriceUnit.vol, qproc.PriceUnit.call]:
+    for price_unit in [qproc.PriceUnit.vol, qproc.PriceUnit.call, qproc.PriceUnit.normalized_call]:
         plot_quotes(quote_processor, strike_unit=qproc.StrikeUnit.strike, price_unit=price_unit)
 
 

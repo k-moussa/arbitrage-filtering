@@ -5,6 +5,7 @@ from copy import copy
 from .quote_structures import Quote
 from ..globals import PriceUnit, StrikeUnit
 from .volatility_functions import implied_vol_for_discounted_option, discounted_black
+from .zero_strike_computation import compute_zero_strike_call_value
 
 
 def transform_quote(q: Quote,
@@ -84,7 +85,9 @@ def _update_price_unit(price_unit: PriceUnit,
             q.ask = discounted_black(forward=forward, strike=q.strike, vol=q.ask, expiry=expiry,
                                      discount_factor=discount_factor, call_one_else_put_minus_one=1)
         elif price_unit is PriceUnit.normalized_call:
-            raise RuntimeError("normalized call as input not implemented.")  # todo:  define strike 0 call and re-use
+            zero_strike_call = compute_zero_strike_call_value(discount_factor=discount_factor, forward=forward)
+            q.bid *= zero_strike_call
+            q.ask *= zero_strike_call
 
     if target_price_unit is PriceUnit.call:
         return q
@@ -96,4 +99,6 @@ def _update_price_unit(price_unit: PriceUnit,
                                                   strike=q.strike, expiry=expiry, discount_factor=discount_factor,
                                                   call_one_else_put_minus_one=1)
     elif target_price_unit is PriceUnit.normalized_call:
-        raise RuntimeError("normalized call as output not implemented.")  # todo:  define strike 0 call and re-use
+        zero_strike_call = compute_zero_strike_call_value(discount_factor=discount_factor, forward=forward)
+        q.bid /= zero_strike_call
+        q.ask /= zero_strike_call
