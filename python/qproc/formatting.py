@@ -18,7 +18,7 @@ def plot_quotes(quote_processor: OptionQuoteProcessor,
     for i in range(expiries.size):
         expiry = expiries[i]
 
-        if spt is SurfacePlotType.separate_2d:
+        if spt is SurfacePlotType.separate:
             if i > 0:
                 plt.figure()
 

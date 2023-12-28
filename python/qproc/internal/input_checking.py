@@ -12,9 +12,7 @@ def check_create_q_proc_args(forwards: np.ndarray,
                              expiries: np.ndarray,
                              strikes: np.ndarray,
                              strike_unit: StrikeUnit,
-                             liquidity_proxies: Optional[np.ndarray],
-                             filter_type: FilterType,
-                             smoothing_param: Optional[float]):
+                             liquidity_proxies: Optional[np.ndarray]):
     """ Checks the arguments passed to create_q_proc and raises a RuntimeError if the input is invalid. """
 
     pass  # todo: implement

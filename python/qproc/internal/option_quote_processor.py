@@ -1,33 +1,31 @@
 """ This module implements the InternalQuoteProcessor class. """
 
 import numpy as np
-from typing import Optional
 from ..globals import *
 from .quote_structures import QuoteSurface
-from .quote_transformation import transform_quote, transform_quote_surface
+from .quote_transformation import transform_quote_surface
 from .filter_factory import create_filter
 
 COL_NAMES: final = (EXPIRY_KEY, STRIKE_KEY, MID_KEY, BID_KEY, ASK_KEY, LIQ_KEY)
 
 
 class InternalQuoteProcessor(OptionQuoteProcessor):
-    def __init__(self,
-                 quote_surface: QuoteSurface,
-                 filter_type: FilterType,
-                 smoothing_param: Optional[float]):
-
+    def __init__(self, quote_surface: QuoteSurface):
         self._quote_surface: QuoteSurface = quote_surface
 
-        if filter_type is not FilterType.na:
-            transform_quote_surface(quote_surface=self._quote_surface, 
-                                    target_price_unit=PriceUnit.normalized_call,
-                                    target_strike_unit=StrikeUnit.moneyness,
-                                    in_place=True)
-            
-            arbitrage_filter = create_filter(quote_surface=quote_surface,
-                                             filter_type=filter_type,
-                                             smoothing_param=smoothing_param)
-            arbitrage_filter.filter()
+    def filter(self,
+               filter_type: FilterType,
+               smoothing_param: Optional[float] = 0.0):
+
+        transform_quote_surface(quote_surface=self._quote_surface,
+                                target_price_unit=PriceUnit.normalized_call,
+                                target_strike_unit=StrikeUnit.moneyness,
+                                in_place=True)
+
+        arbitrage_filter = create_filter(quote_surface=self._quote_surface,
+                                         filter_type=filter_type,
+                                         smoothing_param=smoothing_param)
+        arbitrage_filter.filter()
 
     def get_quotes(self,
                    strike_unit: StrikeUnit,

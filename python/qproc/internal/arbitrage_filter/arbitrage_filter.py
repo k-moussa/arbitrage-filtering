@@ -10,7 +10,7 @@ from ..quote_structures import QuoteSurface, QuoteSlice, Quote, Side
 class StrikeFilter(ArbitrageFilter):
     def __init__(self,
                  quote_surface: QuoteSurface,
-                 smoothing_param: float):
+                 smoothing_param: Optional[float]):
 
         self.arbitrage_free_sets: List[ArbitrageFreeSet] = []
         self.quote_surface: QuoteSurface = quote_surface
