@@ -3,7 +3,7 @@
 import pandas as pd
 from enum import Enum
 from abc import ABC, abstractmethod
-from typing import final, Optional
+from typing import final, Optional, Tuple
 
 CALENDAR_DAYS_YEAR: final = 365
 EXPIRY_KEY: final = 'expiry'
@@ -12,6 +12,7 @@ MID_KEY: final = 'mid'
 BID_KEY: final = 'bid'
 ASK_KEY: final = 'ask'
 LIQ_KEY: final = 'liq'
+DEFAULT_SMOOTHING_PARAM_GRID: final = (0.1, 0.2, 0.3, 0.4, 0.5)
 
 
 class SurfacePlotType(Enum):
@@ -49,11 +50,13 @@ class OptionQuoteProcessor(ABC):
     @abstractmethod
     def filter(self,
                filter_type: FilterType,
-               smoothing_param: Optional[float] = 0.0):
+               smoothing_param: Optional[float] = 0.0,
+               param_grid: Tuple[float] = DEFAULT_SMOOTHING_PARAM_GRID):
         """ Filters the quotes based on the chosen filtering type.
 
         :param filter_type:
         :param smoothing_param:
+        :param param_grid: smoothing parameters to optimize over.
         :return:
         """
 

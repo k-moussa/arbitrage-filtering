@@ -1,7 +1,7 @@
 """ This module implements the various arbitrage filters. """
 
 import numpy as np
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from .globals import ArbitrageFilter
 from .arbitrage_free_set import ArbitrageFreeSet
 from ..quote_structures import QuoteSurface, QuoteSlice, Quote, Side
@@ -10,7 +10,8 @@ from ..quote_structures import QuoteSurface, QuoteSlice, Quote, Side
 class StrikeFilter(ArbitrageFilter):
     def __init__(self,
                  quote_surface: QuoteSurface,
-                 smoothing_param: Optional[float]):
+                 smoothing_param: Optional[float],
+                 smoothing_param_grid: Tuple[float]):
 
         self.arbitrage_free_sets: List[ArbitrageFreeSet] = []
         self.quote_surface: QuoteSurface = quote_surface
@@ -21,6 +22,7 @@ class StrikeFilter(ArbitrageFilter):
         self._current_a_complement: List[Quote] = None
         self._initialize_current_variables()
 
+        self.smoothing_param_grid: Tuple[float] = smoothing_param_grid
         if smoothing_param is None:
             self.smoothing_params: np.ndarray = np.full(shape=(self.quote_surface.n_expiries()), fill_value=np.nan)
         else:
