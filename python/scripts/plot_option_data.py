@@ -16,27 +16,8 @@ def main():
                                           filter_type=qproc.FilterType.strike)
 
     for price_unit in [qproc.PriceUnit.call]: #[qproc.PriceUnit.vol, qproc.PriceUnit.call, qproc.PriceUnit.normalized_call]:
-        plot_quotes(quote_processor, strike_unit=qproc.StrikeUnit.strike, price_unit=price_unit)
-
-
-def plot_quotes(quote_processor: qproc.OptionQuoteProcessor,
-                strike_unit: qproc.StrikeUnit,
-                price_unit: qproc.PriceUnit):
-
-    quotes = quote_processor.get_quotes(strike_unit=strike_unit, price_unit=price_unit)
-    expiries = quotes[qproc.EXPIRY_KEY].unique()
-    for i in range(expiries.size):
-        plt.figure()
-
-        expiry = expiries[i]
-        quotes_for_expiry = quotes.loc[quotes[qproc.EXPIRY_KEY] == expiry]
-        strikes = quotes_for_expiry[qproc.STRIKE_KEY]
-        mid_prices = quotes_for_expiry[qproc.MID_KEY]
-        plt.plot(strikes, mid_prices, marker='o')
-
-        plt.title(f"$T = {expiry}$")
-        plt.xlabel(strike_unit.name)
-        plt.ylabel(price_unit.name)
+        qproc.plot_quotes(quote_processor, strike_unit=qproc.StrikeUnit.strike, price_unit=price_unit,
+                          spt=qproc.SurfacePlotType.combined_2d, points_else_lines=True)
 
 
 if __name__ == "__main__":

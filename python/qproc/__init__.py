@@ -2,3 +2,4 @@
 
 from .globals import *
 from .factory import create_q_proc
+from .formatting import plot_quotes

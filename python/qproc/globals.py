@@ -17,6 +17,11 @@ LIQ_KEY: final = 'liq'
 FloatOrArray: final = Union[float, ndarray]
 
 
+class SurfacePlotType(Enum):
+    separate_2d = 0
+    combined_2d = 1
+
+
 class PriceUnit(Enum):
     vol = 0
     call = 1
