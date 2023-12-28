@@ -25,7 +25,8 @@ class InternalQuoteProcessor(OptionQuoteProcessor):
 
         arbitrage_filter = create_filter(quote_surface=self._quote_surface,
                                          filter_type=filter_type,
-                                         smoothing_param=smoothing_param)
+                                         smoothing_param=smoothing_param,
+                                         smoothing_param_grid=param_grid)
         arbitrage_filter.filter()
 
     def get_quotes(self,

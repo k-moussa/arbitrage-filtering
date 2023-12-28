@@ -17,9 +17,9 @@ def create_filter(quote_surface: QuoteSurface,
                             smoothing_param_grid=smoothing_param_grid)
     elif filter_type is FilterType.expiry_forward:
         return ForwardExpiryFilter(quote_surface=quote_surface, smoothing_param=smoothing_param,
-                            smoothing_param_grid=smoothing_param_grid)
+                                   smoothing_param_grid=smoothing_param_grid)
     elif filter_type is FilterType.discard:
         return DiscardFilter(quote_surface=quote_surface, smoothing_param=smoothing_param,
-                            smoothing_param_grid=smoothing_param_grid)
+                             smoothing_param_grid=smoothing_param_grid)
     else:
         raise RuntimeError(f"filter_type {filter_type.name} not implemented.")

@@ -116,9 +116,11 @@ class StrikeFilter(ArbitrageFilter):
 class ForwardExpiryFilter(StrikeFilter):
     def __init__(self,
                  quote_surface: QuoteSurface,
-                 smoothing_param: float):
+                 smoothing_param: float,
+                 smoothing_param_grid: Tuple[float]):
 
-        super().__init__(quote_surface=quote_surface, smoothing_param=smoothing_param)
+        super().__init__(quote_surface=quote_surface, smoothing_param=smoothing_param,
+                         smoothing_param_grid=smoothing_param_grid)
 
     def _compute_lower_bound(self, q: Quote) -> float:
         lower_bound = self._current_a.compute_lower_bound(q)
@@ -133,9 +135,11 @@ class ForwardExpiryFilter(StrikeFilter):
 class DiscardFilter(StrikeFilter):
     def __init__(self,
                  quote_surface: QuoteSurface,
-                 smoothing_param: float):
+                 smoothing_param: float,
+                 smoothing_param_grid: Tuple[float]):
 
-        super().__init__(quote_surface=quote_surface, smoothing_param=smoothing_param)
+        super().__init__(quote_surface=quote_surface, smoothing_param=smoothing_param,
+                         smoothing_param_grid=smoothing_param_grid)
 
     def adjust_remaining_quotes(self, smoothing_param: float):
         pass  # do not add remaining quotes.
