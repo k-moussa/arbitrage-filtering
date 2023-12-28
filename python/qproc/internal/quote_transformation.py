@@ -1,7 +1,7 @@
 """ This module contains functionality to transform quotes. """
 
 import numpy as np
-from copy import deepcopy
+from copy import copy, deepcopy
 from .quote_structures import Quote, QuoteSurface
 from ..globals import PriceUnit, StrikeUnit
 from .volatility_functions import implied_vol_for_discounted_option, discounted_black
@@ -118,7 +118,11 @@ def _update_price_unit(actual_strike: float,
         return
 
     if price_unit is not PriceUnit.call:
-        if price_unit is PriceUnit.vol:
+        if price_unit in (PriceUnit.vol, PriceUnit.total_var):
+            if price_unit is PriceUnit.total_var:  # map to vol
+                q.bid = np.sqrt(q.bid / expiry)
+                q.ask = np.sqrt(q.ask / expiry)
+
             q.bid = discounted_black(forward=forward, strike=actual_strike, vol=q.bid, expiry=expiry,
                                      discount_factor=discount_factor, call_one_else_put_minus_one=1)
             q.ask = discounted_black(forward=forward, strike=actual_strike, vol=q.ask, expiry=expiry,
@@ -130,13 +134,16 @@ def _update_price_unit(actual_strike: float,
 
     if target_price_unit is PriceUnit.call:
         return q
-    elif target_price_unit is PriceUnit.vol:
+    elif target_price_unit in (PriceUnit.vol, PriceUnit.total_var):
         q.bid = implied_vol_for_discounted_option(discounted_option_price=q.bid, forward=forward,
                                                   strike=actual_strike, expiry=expiry, discount_factor=discount_factor,
                                                   call_one_else_put_minus_one=1)
         q.ask = implied_vol_for_discounted_option(discounted_option_price=q.ask, forward=forward,
                                                   strike=actual_strike, expiry=expiry, discount_factor=discount_factor,
                                                   call_one_else_put_minus_one=1)
+        if target_price_unit is PriceUnit.total_var:
+            q.bid = (q.bid ** 2) * expiry
+            q.ask = (q.ask ** 2) * expiry
     elif target_price_unit is PriceUnit.normalized_call:
         zero_strike_call = compute_zero_strike_call_value(discount_factor=discount_factor, forward=forward)
         q.bid /= zero_strike_call

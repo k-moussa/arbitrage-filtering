@@ -23,6 +23,7 @@ class PriceUnit(Enum):
     vol = 0
     call = 1
     normalized_call = 2
+    total_var = 3
 
 
 class StrikeUnit(Enum):
