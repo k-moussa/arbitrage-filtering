@@ -12,6 +12,7 @@ class DataSetName(Enum):
     na = 0
     example_data_afop = 1
     spx500_5_feb_2018 = 2
+    tsla_15_jun_2018 = 3
 
 
 class OptionDataSet:
@@ -46,6 +47,8 @@ def get_option_data(ds_name: DataSetName) -> OptionDataSet:
         return get_example_data_afop()
     elif ds_name is DataSetName.spx500_5_feb_2018:
         return get_spx500_ds()
+    elif ds_name is DataSetName.tsla_15_jun_2018:
+        return get_tsla_ds()
     else:
         raise RuntimeError(f"get_data_set not implemented for data_set_name {ds_name.name}.")
 
@@ -60,6 +63,7 @@ def get_example_data_afop() -> OptionDataSet:
                          rates=np.zeros((2,)),
                          name=DataSetName.example_data_afop)
 
+
 def get_spx500_ds() -> OptionDataSet:
     df = _get_raw_data_set("spx500_5_feb_2018.csv", index_col=None)
     strikes = df['strike'].values
@@ -70,6 +74,18 @@ def get_spx500_ds() -> OptionDataSet:
                          forwards=np.array([2629.80]),
                          rates=np.array([0.97/100.0]),
                          name=DataSetName.spx500_5_feb_2018)
+
+
+def get_tsla_ds() -> OptionDataSet:
+    df = _get_raw_data_set("tsla_15_jun_2018.csv", index_col=None)
+    strikes = df['strike'].values
+    return OptionDataSet(option_prices=df['vol'].values,
+                         price_unit=PriceUnit.vol,
+                         strikes=strikes,
+                         expiries=np.array([1.59178] * strikes.size),
+                         forwards=np.array([356.73]),
+                         rates=np.array([0.0]),  # rate not given
+                         name=DataSetName.tsla_15_jun_2018)
 
 
 def _get_raw_data_set(file_name: str,
