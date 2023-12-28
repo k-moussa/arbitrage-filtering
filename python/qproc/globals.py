@@ -1,12 +1,11 @@
 """ This module collects all exposed types from the qproc package. """
 
 import pandas as pd
-from numpy import ndarray
 from enum import Enum
 from abc import ABC, abstractmethod
-from typing import final, Union, Optional
+from typing import final, Optional
 
-DAYS_IN_YEAR: final = 365
+CALENDAR_DAYS_YEAR: final = 365
 EXPIRY_KEY: final = 'expiry'
 STRIKE_KEY: final = 'strike'
 MID_KEY: final = 'mid'

@@ -4,8 +4,12 @@ import os
 import numpy as np
 import pandas as pd
 from enum import Enum
-from typing import Optional
+from typing import Optional, Tuple, final
+import qproc
 from qproc import PriceUnit
+
+DAX_EXPIRY_DAYS: final = [3, 28, 48, 68, 133, 198, 263, 398]
+DAX_SPOT: final = 7268.91
 
 
 class DataSetName(Enum):
@@ -13,6 +17,7 @@ class DataSetName(Enum):
     example_data_afop = 1
     spx500_5_feb_2018 = 2
     tsla_15_jun_2018 = 3
+    dax_13_jun_2000 = 4
 
 
 class OptionDataSet:
@@ -49,6 +54,8 @@ def get_option_data(ds_name: DataSetName) -> OptionDataSet:
         return get_spx500_ds()
     elif ds_name is DataSetName.tsla_15_jun_2018:
         return get_tsla_ds()
+    elif ds_name is DataSetName.dax_13_jun_2000:
+        return get_dax_ds()
     else:
         raise RuntimeError(f"get_data_set not implemented for data_set_name {ds_name.name}.")
 
@@ -86,6 +93,47 @@ def get_tsla_ds() -> OptionDataSet:
                          forwards=np.array([356.73]),
                          rates=np.array([0.0]),  # rate not given
                          name=DataSetName.tsla_15_jun_2018)
+
+
+def get_dax_ds() -> OptionDataSet:
+    vols, strikes, expiries = _get_dax_vols_strikes_expiries()
+    rates = _get_raw_data_set("zero_rates_euribor_13_jun_2000.csv", index_col=None)["zero_rate"].values
+
+    annualized_expiries_in_years = np.array(DAX_EXPIRY_DAYS) / qproc.CALENDAR_DAYS_YEAR
+    forwards = DAX_SPOT * np.exp(rates * annualized_expiries_in_years)
+
+    return OptionDataSet(option_prices=vols,
+                         price_unit=PriceUnit.vol,
+                         strikes=strikes,
+                         expiries=expiries,
+                         forwards=forwards,
+                         rates=rates,  # rate not given
+                         name=DataSetName.dax_13_jun_2000)
+
+
+def _get_dax_vols_strikes_expiries() -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    df = _get_raw_data_set("dax_vol_surface_13_jun_2000.csv", index_col=None)
+    strikes_series = df['strike']
+    strikes = []
+    vols = []
+    expiries = []
+    for d in DAX_EXPIRY_DAYS:
+        colname = str(d)
+        df_d = df[colname]
+        non_nan_indices = df_d.notnull()
+
+        vols_d = df_d[non_nan_indices].values
+        vols.append(vols_d)
+
+        strikes_d = strikes_series[non_nan_indices].values
+        strikes.append(strikes_d)
+
+        expiries.append(np.full(shape=vols_d.shape, fill_value=d / qproc.CALENDAR_DAYS_YEAR))
+
+    vols = np.concatenate(vols) / 100.0  # the vols are given in percentage
+    strikes = np.concatenate(strikes)
+    expiries = np.concatenate(expiries)
+    return vols, strikes, expiries
 
 
 def _get_raw_data_set(file_name: str,
