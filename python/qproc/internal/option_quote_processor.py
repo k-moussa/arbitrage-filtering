@@ -15,7 +15,7 @@ class InternalQuoteProcessor(OptionQuoteProcessor):
 
     def filter(self,
                filter_type: FilterType,
-               smoothing_param: Optional[float] = 0.0,
+               smoothing_param: Optional[float] = DEFAULT_SMOOTHING_PARAM,
                param_grid: Tuple[float] = DEFAULT_SMOOTHING_PARAM_GRID):
 
         transform_quote_surface(quote_surface=self._quote_surface,

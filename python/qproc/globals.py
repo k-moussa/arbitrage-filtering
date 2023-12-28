@@ -12,6 +12,8 @@ MID_KEY: final = 'mid'
 BID_KEY: final = 'bid'
 ASK_KEY: final = 'ask'
 LIQ_KEY: final = 'liq'
+
+DEFAULT_SMOOTHING_PARAM: final = 0.0
 DEFAULT_SMOOTHING_PARAM_GRID: final = (0.1, 0.2, 0.3, 0.4, 0.5)
 
 
@@ -50,7 +52,7 @@ class OptionQuoteProcessor(ABC):
     @abstractmethod
     def filter(self,
                filter_type: FilterType,
-               smoothing_param: Optional[float] = 0.0,
+               smoothing_param: Optional[float] = DEFAULT_SMOOTHING_PARAM,
                param_grid: Tuple[float] = DEFAULT_SMOOTHING_PARAM_GRID):
         """ Filters the quotes based on the chosen filtering type.
 
