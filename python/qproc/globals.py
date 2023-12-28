@@ -38,9 +38,9 @@ class Side(Enum):
 
 
 class FilterType(Enum):
+    discard = 0
     strike = 1
-    expiry = 2
-    discard = 3
+    expiry_forward = 2
 
 
 class OptionQuoteProcessor(ABC):

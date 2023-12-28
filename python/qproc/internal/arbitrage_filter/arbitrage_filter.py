@@ -111,6 +111,23 @@ class StrikeFilter(ArbitrageFilter):
         self._current_a.add_quote(q)
 
 
+class ForwardExpiryFilter(StrikeFilter):
+    def __init__(self,
+                 quote_surface: QuoteSurface,
+                 smoothing_param: float):
+
+        super().__init__(quote_surface=quote_surface, smoothing_param=smoothing_param)
+
+    def _compute_lower_bound(self, q: Quote) -> float:
+        lower_bound = self._current_a.compute_lower_bound(q)
+        for a in self.arbitrage_free_sets:
+            lb_from_previous_slice = a.compute_lower_bound(q)
+            if lb_from_previous_slice >= lower_bound:
+                lower_bound = lb_from_previous_slice
+
+        return lower_bound
+
+
 class DiscardFilter(StrikeFilter):
     def __init__(self,
                  quote_surface: QuoteSurface,
