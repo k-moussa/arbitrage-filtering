@@ -68,6 +68,18 @@ class QuoteSlice:
         self.discount_factor: float = np.exp(-rate * expiry)
         self.quotes: List[Quote] = []
 
+    def __lt__(self, rhs):  # < operator
+        """ Overloads the < operator to allow for using the bisection module for efficient insertion and
+        lookup based on the expiry. """
+
+        return self.expiry < rhs.expiry
+
+    def __eq__(self, rhs):  # == operator
+        """ Overloads the == operator to allow for using the bisection module for efficient insertion and
+            lookup based on the expiry. """
+
+        return self.expiry == rhs.expiry
+
     def add_quote(self, q: Quote):
         bisect.insort_left(self.quotes, q)
 
@@ -85,7 +97,7 @@ class QuoteSurface:
         self.slices: List[QuoteSlice] = []
 
     def add_slice(self, quote_slice: QuoteSlice):
-        self.slices.append(quote_slice)
+        bisect.insort_left(self.slices, quote_slice)
 
     def n_expiries(self) -> int:
         return len(self.slices)
