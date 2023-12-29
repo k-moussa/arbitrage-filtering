@@ -1,9 +1,10 @@
 """ This module collects all exposed types from the qproc package. """
 
+import numpy as np
 import pandas as pd
 from enum import Enum
 from abc import ABC, abstractmethod
-from typing import final, Optional, Tuple
+from typing import final, Optional, Tuple, Union
 
 CALENDAR_DAYS_YEAR: final = 365
 EXPIRY_KEY: final = 'expiry'
@@ -15,6 +16,9 @@ LIQ_KEY: final = 'liq'
 
 DEFAULT_SMOOTHING_PARAM: final = 0.0
 DEFAULT_SMOOTHING_PARAM_GRID: final = (0.1, 0.2, 0.3, 0.4, 0.5)
+
+Scalar: final = Union[int, float]
+ScalarOrArray: final = Union[Scalar, np.ndarray]
 
 
 class SurfacePlotType(Enum):
@@ -48,6 +52,38 @@ class FilterType(Enum):
 
 
 class OptionQuoteProcessor(ABC):
+
+    @staticmethod
+    def get_transformed_strike(strike: ScalarOrArray,
+                               strike_unit: StrikeUnit,
+                               forward: float) -> ScalarOrArray:
+        """ Transforms the given strike(s) to the desired strike unit.
+
+        :param strike:
+        :param strike_unit:
+        :param forward:
+        :return: transformed strike(s), of the same type and shape as strike.
+        """
+
+    @staticmethod
+    def get_price(strike: ScalarOrArray,
+                  price: ScalarOrArray,
+                  price_unit: PriceUnit,
+                  target_price_unit: PriceUnit,
+                  expiry: float,
+                  discount_factor: float,
+                  forward: float) -> ScalarOrArray:
+        """ Transforms the given price(s) to the desired price unit.
+
+        :param strike:
+        :param price:
+        :param price_unit:
+        :param target_price_unit:
+        :param expiry:
+        :param discount_factor:
+        :param forward:
+        :return: transformed price(s), of the same type and shape as strike.
+        """
 
     @abstractmethod
     def filter(self,
