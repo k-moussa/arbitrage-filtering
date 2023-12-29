@@ -5,7 +5,7 @@
 import bisect
 import numpy as np
 from typing import List, final
-from .sorting_algorithms import find_lt, find_gt
+from qproc.internal.sorting_algorithms import find_lt, find_gt, find_le
 from ..quote_structures import Quote
 
 QUOTE_0: final = Quote(bid=1.0, ask=1.0, strike=0.0, liq_proxy=np.nan)
@@ -13,8 +13,21 @@ QUOTE_INF: final = Quote(bid=0.0, ask=0.0, strike=np.inf, liq_proxy=np.nan)
 
 
 class ArbitrageFreeSet:
-    def __init__(self):
+    def __init__(self, expiry: float):
+        self.expiry: float = expiry
         self._sorted_quotes: List[Quote] = [QUOTE_0, QUOTE_INF]
+
+    def __lt__(self, rhs):  # < operator
+        """ Overloads the < operator to allow for using the bisection module for efficient insertion and
+        lookup based on the expiry. """
+
+        return self.expiry < rhs.expiry
+
+    def __eq__(self, rhs):  # == operator
+        """ Overloads the == operator to allow for using the bisection module for efficient insertion and
+            lookup based on the expiry. """
+
+        return self.expiry == rhs.expiry
 
     def get_arbitrage_free_quotes(self, exclude_strikes_0_and_inf: bool) -> List[Quote]:
         arbitrage_free_quotes = self._sorted_quotes
@@ -90,3 +103,21 @@ class ArbitrageFreeSet:
     def _is_strike_of_right_adjacent_quote_finite(self, q: Quote) -> bool:
         right_adjacent_quote = self._get_right_adjacent_quote(q)
         return np.isfinite(right_adjacent_quote.strike)
+
+
+class ArbitrageFreeCollection:
+    def __init__(self):
+        self.sets: List[ArbitrageFreeSet] = []
+
+    def add_set(self, a: ArbitrageFreeSet):
+        bisect.insort_right(self.sets, a)
+        
+    def get_set(self, expiry: float) -> ArbitrageFreeSet:
+        """ Returns the quote set for the given expiry; raises a runtime error if expiry is not equivalent. """
+
+        dummy_set_for_indexing = ArbitrageFreeSet(expiry=expiry)
+        a = find_le(self.sets, dummy_set_for_indexing)
+        if a.expiry != expiry:
+            raise RuntimeError("expiry does not match any of the quote expiries")
+
+        return a

@@ -1,10 +1,10 @@
 """ This module serves to create instances of the ArbitrageFilter class. """
 
 from typing import Optional, Tuple
-from ..globals import FilterType
-from .quote_structures import QuoteSurface
-from .arbitrage_filter.globals import ArbitrageFilter
-from .arbitrage_filter.arbitrage_filter import StrikeFilter, ForwardExpiryFilter, DiscardFilter
+from qproc.globals import FilterType
+from qproc.internal.quote_structures import QuoteSurface
+from qproc.internal.arbitrage_filter.globals import ArbitrageFilter
+from qproc.internal.arbitrage_filter.arbitrage_filter import StrikeFilter, ForwardExpiryFilter, DiscardFilter
 
 
 def create_filter(quote_surface: QuoteSurface,

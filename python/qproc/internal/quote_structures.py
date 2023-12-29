@@ -2,8 +2,9 @@
 
 import bisect
 import numpy as np
-from typing import Optional, List
+from typing import List
 from ..globals import Side, StrikeUnit, PriceUnit
+from .sorting_algorithms import find_le
 
 
 class Quote:
@@ -102,9 +103,22 @@ class QuoteSurface:
     def n_expiries(self) -> int:
         return len(self.slices)
 
+    def expiries(self) -> List[float]:
+        return [s.expiry for s in self.slices]
+
     def n_quotes(self) -> int:
         total_n_quotes = 0
         for qs in self.slices:
             total_n_quotes += qs.n_quotes()
 
         return total_n_quotes
+
+    def get_slice(self, expiry: float) -> QuoteSlice:
+        """ Returns the quote slice for the given expiry; raises a runtime error if expiry is not equivalent. """
+
+        dummy_slice_for_indexing = QuoteSlice(forward=np.nan, rate=np.nan, expiry=expiry)
+        quote_slice = find_le(self.slices, dummy_slice_for_indexing)
+        if quote_slice.expiry != expiry:
+            raise RuntimeError("expiry does not match any of the quote expiries")
+
+        return quote_slice

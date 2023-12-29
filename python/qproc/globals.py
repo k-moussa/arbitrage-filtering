@@ -54,28 +54,32 @@ class FilterType(Enum):
 class OptionQuoteProcessor(ABC):
 
     @staticmethod
-    def get_transformed_strike(strike: ScalarOrArray,
-                               strike_unit: StrikeUnit,
-                               forward: float) -> ScalarOrArray:
+    def transform_strike(strike: ScalarOrArray,
+                         strike_unit: StrikeUnit,
+                         target_strike_unit: StrikeUnit,
+                         forward: float) -> ScalarOrArray:
         """ Transforms the given strike(s) to the desired strike unit.
 
         :param strike:
         :param strike_unit:
+        :param target_strike_unit
         :param forward:
         :return: transformed strike(s), of the same type and shape as strike.
         """
 
     @staticmethod
-    def get_price(strike: ScalarOrArray,
-                  price: ScalarOrArray,
-                  price_unit: PriceUnit,
-                  target_price_unit: PriceUnit,
-                  expiry: float,
-                  discount_factor: float,
-                  forward: float) -> ScalarOrArray:
+    def transform_price(strike: ScalarOrArray,
+                        strike_unit: StrikeUnit,
+                        price: ScalarOrArray,
+                        price_unit: PriceUnit,
+                        target_price_unit: PriceUnit,
+                        expiry: float,
+                        discount_factor: float,
+                        forward: float) -> ScalarOrArray:
         """ Transforms the given price(s) to the desired price unit.
 
         :param strike:
+        :param strike_unit
         :param price:
         :param price_unit:
         :param target_price_unit:
@@ -107,4 +111,40 @@ class OptionQuoteProcessor(ABC):
         :param strike_unit:
         :param price_unit:
         :return:
+        """
+        
+    @abstractmethod
+    def compute_lower_bound(self,
+                            expiry: float,
+                            strike: ScalarOrArray,
+                            strike_unit: StrikeUnit,
+                            price_unit: PriceUnit) -> ScalarOrArray:
+        """ Computes the lower bound for given expiry and strike implied by the quotes. The bounds are expressed in the
+            chosen price unit. 
+            
+            Remark: this function can be used only after a call to 'filter' (i.e., once the quotes have been filtered). 
+        
+        :param expiry: 
+        :param strike: 
+        :param strike_unit: 
+        :param price_unit: 
+        :return: 
+        """
+
+    @abstractmethod
+    def compute_upper_bound(self,
+                            expiry: float,
+                            strike: ScalarOrArray,
+                            strike_unit: StrikeUnit,
+                            price_unit: PriceUnit) -> ScalarOrArray:
+        """ Computes the upper bound for given expiry and strike implied by the quotes. The bounds are expressed in the
+            chosen price unit. 
+
+            Remark: this function can be used only after a call to 'filter' (i.e., once the quotes have been filtered). 
+
+        :param expiry: 
+        :param strike: 
+        :param strike_unit: 
+        :param price_unit: 
+        :return: 
         """

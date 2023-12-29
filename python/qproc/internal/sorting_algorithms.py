@@ -12,8 +12,7 @@ def index(a, x):
     if i != len(a) and a[i] == x:
         return i
     else:
-        return -1 # Indicating an error
-    #raise ValueError
+        raise RuntimeError("value not in list.")
 
 
 def find_lt(a, x):
