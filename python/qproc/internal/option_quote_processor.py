@@ -28,7 +28,9 @@ class InternalQuoteProcessor(OptionQuoteProcessor):
 
         if strike_unit is target_strike_unit:
             return strike
-       
+
+        strike = deepcopy(strike)   # do not overwrite input
+
         # map to actual strike
         if strike_unit is not StrikeUnit.strike:  # map to strike
             if strike_unit is StrikeUnit.moneyness:
@@ -59,10 +61,10 @@ class InternalQuoteProcessor(OptionQuoteProcessor):
         
         actual_strike = InternalQuoteProcessor.transform_strike(strike=strike, strike_unit=strike_unit, 
                                                                 target_strike_unit=StrikeUnit.strike, forward=forward)
-        
+
         if not isinstance(actual_strike, np.ndarray):  # scalar
             return InternalQuoteProcessor._get_single_price(actual_strike=actual_strike, price=price,
-                                                            price_unit=price_unit,target_price_unit=target_price_unit,
+                                                            price_unit=price_unit, target_price_unit=target_price_unit,
                                                             expiry=expiry, discount_factor=discount_factor,
                                                             forward=forward)
         else: 
