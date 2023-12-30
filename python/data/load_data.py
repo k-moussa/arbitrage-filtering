@@ -40,6 +40,10 @@ class OptionDataSet:
         self.liquidity_proxies: Optional[np.ndarray] = liquidity_proxies
         self.name: DataSetName = name
 
+    def unique_expiries(self) -> np.ndarray:
+        return np.unique(self.expiries)
+
+
 
 def get_option_data(ds_name: DataSetName) -> OptionDataSet:
     """ This function returns a data set of choice.

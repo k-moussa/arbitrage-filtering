@@ -1,11 +1,10 @@
 """ This module allows for creating instances of the OptionQuoteProcessor class. """
 
-import numpy as np
-from typing import Optional
 from .internal.input_checking import check_create_q_proc_args
 from .globals import *
 from .internal.option_quote_processor import InternalQuoteProcessor
 from .internal.quote_surface_construction import get_quote_surface
+from .internal.curve_construction import InternalRateCurve
 
 
 def create_q_proc(forwards: np.ndarray,
@@ -50,3 +49,15 @@ def create_q_proc(forwards: np.ndarray,
                                       liquidity_proxies=liquidity_proxies)
 
     return InternalQuoteProcessor(quote_surface=quote_surface)
+
+
+def create_rate_curve(times: np.ndarray,
+                      zero_rates: np.ndarray) -> RateCurve:
+    """ Returns a rate curve that inter- and extrapolates given zero rates.
+
+    :param times:
+    :param zero_rates: continuously compounded zero rates.
+    :return:
+    """
+
+    return InternalRateCurve(times=times, zero_rates=zero_rates)

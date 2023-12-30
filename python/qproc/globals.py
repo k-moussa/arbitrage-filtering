@@ -51,6 +51,24 @@ class FilterType(Enum):
     expiry_forward = 2
 
 
+class RateCurve(ABC):
+    @abstractmethod
+    def get_zero_rate(self, time: float) -> float:
+        """ Computes the zero rate for given time (in years).
+
+        :param time:
+        :return:
+        """
+
+    @abstractmethod
+    def get_discount_factor(self, time: float) -> float:
+        """ Computes the discount factor for given time (in years).
+
+        :param time:
+        :return:
+        """
+
+
 class OptionQuoteProcessor(ABC):
 
     @staticmethod
