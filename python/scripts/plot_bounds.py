@@ -9,7 +9,7 @@ from data import DataSetName, get_option_data
 
 
 def main():
-    option_data = get_option_data(DataSetName.example_data_afop)
+    option_data = get_option_data(DataSetName.tsla_15_jun_2018)
     quote_processor = qproc.create_q_proc(option_prices=option_data.option_prices,
                                           price_unit=option_data.price_unit,
                                           strikes=option_data.strikes,
@@ -19,9 +19,9 @@ def main():
 
     quote_processor.filter(filter_type=qproc.FilterType.discard)
 
-    price_unit = qproc.PriceUnit.normalized_call
-    strike_unit = qproc.StrikeUnit.moneyness
-    strike_range = (0.3, 2.0)  # moneyness
+    price_unit = qproc.PriceUnit.total_var
+    strike_unit = qproc.StrikeUnit.log_moneyness
+    strike_range = (0.01, 5.0)  # moneyness
     create_bounds_plot(quote_processor=quote_processor,
                        strike_range=strike_range,
                        strike_unit=strike_unit,
