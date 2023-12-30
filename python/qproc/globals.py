@@ -69,6 +69,20 @@ class RateCurve(ABC):
         """
 
 
+class ForwardPriceCurve(ABC):
+    @abstractmethod
+    def get_forward(self, time: float) -> float:
+        """ Computes the zero rate for given time (in years).
+
+        :param time:
+        :return:
+        """
+
+    @abstractmethod
+    def spot(self) -> float:
+        """ Returns the spot rate."""
+
+
 class OptionQuoteProcessor(ABC):
 
     @staticmethod

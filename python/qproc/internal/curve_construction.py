@@ -24,3 +24,28 @@ class InternalRateCurve(RateCurve):
         log_depo = self._interpolator(time)
         discount_factor = np.exp(-log_depo)
         return discount_factor
+
+
+# class ForwardPriceCurve(ABC):
+#     def __init__(self,
+#                  spot: float,
+#                  times: np.ndarray,
+#                  forwards: np.ndarray):
+#
+#         self._times: np.ndarray = times
+#         log_deposits = zero_rates * times  # perform log linear interpolation
+#         self._interpolator: Interpolator = create_interpolator(x=times, y=log_deposits,
+#                                                                inter_type=InterpolationType.linear,
+#                                                                extra_type=ExtrapolationType.nan)  # todo: extrapolation
+#
+#     @abstractmethod
+#     def get_forward(self, time: float) -> float:
+#         """ Computes the zero rate for given time (in years).
+#
+#         :param time:
+#         :return:
+#         """
+#
+#     @abstractmethod
+#     def spot(self) -> float:
+#         """ Returns the spot rate."""
