@@ -1,6 +1,8 @@
 """ This module implements various interpolation methods. """
 
-from typing import Optional, Callable
+import splines
+from scipy.interpolate import CubicSpline, PchipInterpolator
+from typing import Callable
 from .globals import *
 
 
@@ -81,5 +83,28 @@ class InternalInterpolator(Interpolator, ABC):
         if inter_type is InterpolationType.linear:
             interpolant = lambda z: np.interp(x=z, xp=x, fp=y)
             return interpolant
+        elif inter_type is InterpolationType.ncs:
+            return CubicSpline(x=x, y=y, bc_type='natural')
+        elif inter_type is InterpolationType.ccs:
+            return CubicSpline(x=x, y=y, bc_type='clamped')
+        elif inter_type is InterpolationType.pmc:
+            return PmcSplineFunctor(x=x, y=y)
+        elif inter_type is InterpolationType.pchip:
+            return PchipInterpolator(x=x, y=y)
         else:
             raise RuntimeError(f"Unhandled inter_type {inter_type.name}.")
+
+
+class PmcSplineFunctor:
+    def __init__(self,
+                 x: np.ndarray,
+                 y: np.ndarray):
+
+        self.x: np.ndarray = x
+        self._spline = splines.PiecewiseMonotoneCubic(values=y, grid=x)
+
+    def __call__(self, x: np.ndarray):
+        inter_masks = (x >= self.x[0]) & (x <= self.x[-1])
+        y_eval = np.full(shape=(size(x),), fill_value=np.nan)
+        y_eval[inter_masks] = self._spline.evaluate(x[inter_masks])
+        return y_eval

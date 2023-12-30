@@ -17,7 +17,11 @@ ScalarOrArray: final = Union[Scalar, np.ndarray]
 
 
 class InterpolationType(Enum):
-    linear = 1
+    linear = 0
+    ncs = 1  # natural cubic spline
+    ccs = 2  # clamped cubic spline
+    pmc = 3  # piecewise monotone cubic [FC80]
+    pchip = 4  # [FB84]
 
 
 class ExtrapolationType(Enum):
