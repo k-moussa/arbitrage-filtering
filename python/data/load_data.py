@@ -22,6 +22,7 @@ class DataSetName(Enum):
 
 class OptionDataSet:
     def __init__(self,
+                 spot: float,
                  option_prices: np.ndarray,
                  price_unit: PriceUnit,
                  strikes: np.ndarray,
@@ -31,6 +32,7 @@ class OptionDataSet:
                  liquidity_proxies: Optional[np.ndarray] = None,
                  name: DataSetName = DataSetName.na):
 
+        self.spot: float = spot
         self.option_prices: np.ndarray = option_prices
         self.price_unit: PriceUnit = price_unit
         self.strikes: np.ndarray = strikes
@@ -42,7 +44,6 @@ class OptionDataSet:
 
     def unique_expiries(self) -> np.ndarray:
         return np.unique(self.expiries)
-
 
 
 def get_option_data(ds_name: DataSetName) -> OptionDataSet:
@@ -66,7 +67,8 @@ def get_option_data(ds_name: DataSetName) -> OptionDataSet:
 
 def get_example_data_afop() -> OptionDataSet:
     df = _get_raw_data_set("example_data_afop.csv", index_col=None)
-    return OptionDataSet(option_prices=df['call_price'].values,
+    return OptionDataSet(spot=1.0,
+                         option_prices=df['call_price'].values,
                          price_unit=PriceUnit.call,
                          strikes=df['strike'].values,
                          expiries=df['expiry'].values,
@@ -78,24 +80,33 @@ def get_example_data_afop() -> OptionDataSet:
 def get_spx500_ds() -> OptionDataSet:
     df = _get_raw_data_set("spx500_5_feb_2018.csv", index_col=None)
     strikes = df['strike'].values
-    return OptionDataSet(option_prices=df['vol'].values,
+
+    zero_rate = 0.97/100.0
+    forward_price = 2629.80
+    expiry = 0.082192
+    spot = np.exp(-expiry * zero_rate) * forward_price
+
+    return OptionDataSet(spot=spot,
+                         option_prices=df['vol'].values,
                          price_unit=PriceUnit.vol,
                          strikes=strikes,
-                         expiries=np.array([0.082192] * strikes.size),
-                         forwards=np.array([2629.80]),
-                         rates=np.array([0.97/100.0]),
+                         expiries=np.array([expiry] * strikes.size),
+                         forwards=np.array([forward_price]),
+                         rates=np.array([zero_rate]),
                          name=DataSetName.spx500_5_feb_2018)
 
 
 def get_tsla_ds() -> OptionDataSet:
     df = _get_raw_data_set("tsla_15_jun_2018.csv", index_col=None)
     strikes = df['strike'].values
-    return OptionDataSet(option_prices=df['vol'].values,
+    forward_price = 356.73
+    return OptionDataSet(spot=forward_price,  # spot and rate not given; assume rate of zero
+                         option_prices=df['vol'].values,
                          price_unit=PriceUnit.vol,
                          strikes=strikes,
                          expiries=np.array([1.59178] * strikes.size),
-                         forwards=np.array([356.73]),
-                         rates=np.array([0.0]),  # rate not given
+                         forwards=np.array([forward_price]),
+                         rates=np.array([0.0]),  # rate not given; assume rate of zero
                          name=DataSetName.tsla_15_jun_2018)
 
 
@@ -106,7 +117,8 @@ def get_dax_ds() -> OptionDataSet:
     annualized_expiries_in_years = np.array(DAX_EXPIRY_DAYS) / qproc.CALENDAR_DAYS_YEAR
     forwards = DAX_SPOT * np.exp(rates * annualized_expiries_in_years)
 
-    return OptionDataSet(option_prices=vols,
+    return OptionDataSet(spot=DAX_SPOT,
+                         option_prices=vols,
                          price_unit=PriceUnit.vol,
                          strikes=strikes,
                          expiries=expiries,
