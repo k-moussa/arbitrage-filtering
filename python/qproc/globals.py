@@ -82,29 +82,29 @@ class ForwardCurve(ABC):
 
 class OptionQuoteProcessor(ABC):
 
-    @staticmethod
-    def transform_strike(strike: ScalarOrArray,
+    @abstractmethod
+    def transform_strike(self,
+                         expiry: float,
+                         strike: ScalarOrArray,
                          input_strike_unit: StrikeUnit,
-                         output_strike_unit: StrikeUnit,
-                         forward: float) -> ScalarOrArray:
+                         output_strike_unit: StrikeUnit) -> ScalarOrArray:
         """ Transforms the given strike(s) to the desired strike unit.
 
+        :param expiry
         :param strike:
         :param input_strike_unit:
         :param output_strike_unit
-        :param forward:
         :return: transformed strike(s), of the same type and shape as strike.
         """
 
-    @staticmethod
-    def transform_price(strike: ScalarOrArray,
+    @abstractmethod
+    def transform_price(self,
+                        strike: ScalarOrArray,
                         strike_unit: StrikeUnit,
                         price: ScalarOrArray,
                         input_price_unit: PriceUnit,
                         output_price_unit: PriceUnit,
-                        expiry: float,
-                        discount_factor: float,
-                        forward: float) -> ScalarOrArray:
+                        expiry: float) -> ScalarOrArray:
         """ Transforms the given price(s) to the desired price unit.
 
         :param strike:
@@ -113,8 +113,6 @@ class OptionQuoteProcessor(ABC):
         :param input_price_unit:
         :param output_price_unit:
         :param expiry:
-        :param discount_factor:
-        :param forward:
         :return: transformed price(s), of the same type and shape as strike.
         """
 

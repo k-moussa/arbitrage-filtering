@@ -5,19 +5,17 @@ from ..globals import *
 from .quote_structures import QuoteSurface, QuoteSlice, Quote
 
 
-def get_quote_surface(forwards: np.ndarray,
-                      rates: np.ndarray,
-                      option_prices: np.ndarray,
+def get_quote_surface(option_prices: np.ndarray,
                       price_unit: PriceUnit,
                       expiries: np.ndarray,
                       strikes: np.ndarray,
                       strike_unit: StrikeUnit,
-                      liquidity_proxies: Optional[np.ndarray]) -> QuoteSurface:
+                      liquidity_proxies: np.ndarray) -> QuoteSurface:
 
     quote_surface = QuoteSurface(price_unit=price_unit, strike_unit=strike_unit)
     sided_option_prices = _get_sided_prices(option_prices)
-    _fill_quote_surface(sided_option_prices, strikes=strikes, expiries=expiries, forwards=forwards,
-                        rates=rates, liquidity_proxies=liquidity_proxies, quote_surface=quote_surface)
+    _fill_quote_surface(sided_option_prices, strikes=strikes, expiries=expiries,
+                        liquidity_proxies=liquidity_proxies, quote_surface=quote_surface)
     return quote_surface
 
 
@@ -38,15 +36,12 @@ def _get_sided_prices(option_prices: np.ndarray) -> np.ndarray:
 def _fill_quote_surface(sided_option_prices,
                         strikes: np.ndarray,
                         expiries: np.ndarray,
-                        forwards: np.ndarray,
-                        rates: np.ndarray,
-                        liquidity_proxies: Optional[np.ndarray],
+                        liquidity_proxies: np.ndarray,
                         quote_surface: QuoteSurface):
 
     n_quotes = sided_option_prices.shape[0]
 
     current_expiry = -np.inf
-    forward = np.nan
     quote_slice: Optional[QuoteSlice] = None
     qslice_index = -1
 
@@ -58,26 +53,12 @@ def _fill_quote_surface(sided_option_prices,
         elif expiry > current_expiry:
             qslice_index += 1
             current_expiry = expiry
-            forward = forwards[qslice_index]
-            quote_slice = QuoteSlice(forward=forward, rate=rates[qslice_index],
-                                     expiry=expiry)
+            quote_slice = QuoteSlice(expiry=expiry)
 
             quote_surface.add_slice(quote_slice)
 
         bid = sided_option_prices[i, 0]
         ask = sided_option_prices[i, 1]
         strike = strikes[i]
-        liq_proxy = _get_liquidity_proxy(liquidity_proxies, index=i, strike=strike, forward=forward)
-        q = Quote(bid=bid, ask=ask, strike=strike, liq_proxy=liq_proxy)
+        q = Quote(bid=bid, ask=ask, strike=strike, liq_proxy=liquidity_proxies[i])
         quote_slice.add_quote(q)
-
-
-def _get_liquidity_proxy(liq_proxies: Optional[np.ndarray],
-                         index: int,
-                         strike: float,
-                         forward: float) -> float:
-
-    if liq_proxies is None:
-        return 1.0 / (1.0 + np.abs(strike - forward))
-
-    return liq_proxies[index]

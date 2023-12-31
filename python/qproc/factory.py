@@ -7,6 +7,8 @@ from .globals import *
 from .internal.option_quote_processor import InternalQuoteProcessor
 from .internal.quote_surface_construction import get_quote_surface
 from .internal.curve_construction import InternalRateCurve, InternalForwardCurve
+from .internal.liquidity_proxy_computation import compute_moneyness_based_liquidity_proxies
+from .internal.quote_transformation import transform_strike
 
 
 def create_q_proc(forwards: Union[np.ndarray, ForwardCurve],
@@ -44,16 +46,6 @@ def create_q_proc(forwards: Union[np.ndarray, ForwardCurve],
                              strike_unit=strike_unit,
                              liquidity_proxies=liquidity_proxies)
 
-    # todo: remove forwards, rates
-    quote_surface = get_quote_surface(forwards=forwards,
-                                      rates=rates,
-                                      option_prices=option_prices,
-                                      price_unit=price_unit,
-                                      expiries=expiries,
-                                      strikes=strikes,
-                                      strike_unit=strike_unit,
-                                      liquidity_proxies=liquidity_proxies)
-
     if isinstance(forwards, np.ndarray) or isinstance(rates, np.ndarray):
         unique_expiries = np.sort(np.unique(expiries))
         if isinstance(forwards, np.ndarray):
@@ -61,9 +53,23 @@ def create_q_proc(forwards: Union[np.ndarray, ForwardCurve],
         if isinstance(rates, np.ndarray):
             rates = create_rate_curve(times=unique_expiries, zero_rates=rates)
 
+    if liquidity_proxies is None:
+        forwards_for_strikes = forwards.get_forward(expiries)
+        actual_strikes = transform_strike(strike=strikes, input_strike_unit=strike_unit,
+                                          output_strike_unit=StrikeUnit.strike, forward=forwards_for_strikes)
+        liquidity_proxies = compute_moneyness_based_liquidity_proxies(strikes=actual_strikes, expiries=expiries,
+                                                                      forward_curve=forwards)
+
+    quote_surface = get_quote_surface(option_prices=option_prices,
+                                      price_unit=price_unit,
+                                      expiries=expiries,
+                                      strikes=strikes,
+                                      strike_unit=strike_unit,
+                                      liquidity_proxies=liquidity_proxies)
+
     return InternalQuoteProcessor(quote_surface=quote_surface,
                                   forward_curve=forwards,
-                                  rates_curve=rates)
+                                  rate_curve=rates)
 
 
 def create_forward_curve(spot: float,

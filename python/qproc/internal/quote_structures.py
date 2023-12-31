@@ -1,7 +1,6 @@
 """ This module collects several types for storing quotes. """
 
 import bisect
-import numpy as np
 from typing import List
 from ..globals import Side, StrikeUnit, PriceUnit
 from .sorting_algorithms import find_le
@@ -59,14 +58,9 @@ class Quote:
 
 
 class QuoteSlice:
-    def __init__(self,
-                 forward: float,
-                 rate: float,
-                 expiry: float):
+    def __init__(self, expiry: float):
 
         self.expiry: float = expiry
-        self.forward: float = forward
-        self.discount_factor: float = np.exp(-rate * expiry)
         self.quotes: List[Quote] = []
 
     def __lt__(self, rhs):  # < operator
@@ -116,7 +110,7 @@ class QuoteSurface:
     def get_slice(self, expiry: float) -> QuoteSlice:
         """ Returns the quote slice for the given expiry; raises a runtime error if expiry is not equivalent. """
 
-        dummy_slice_for_indexing = QuoteSlice(forward=np.nan, rate=np.nan, expiry=expiry)
+        dummy_slice_for_indexing = QuoteSlice(expiry=expiry)
         quote_slice = find_le(self.slices, dummy_slice_for_indexing)
         if quote_slice.expiry != expiry:
             raise RuntimeError("expiry does not match any of the quote expiries")
