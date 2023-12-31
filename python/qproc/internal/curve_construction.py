@@ -16,12 +16,12 @@ class InternalRateCurve(RateCurve):
                                                                inter_type=InterpolationType.linear,
                                                                extra_type=ExtrapolationType.nan)  # todo: extrapolation
 
-    def get_zero_rate(self, time: float) -> float:
+    def get_zero_rate(self, time: ScalarOrArray) -> ScalarOrArray:
         log_depo = self._interpolator(time)
         zero_rate = log_depo / time
         return zero_rate
 
-    def get_discount_factor(self, time: float) -> float:
+    def get_discount_factor(self, time: ScalarOrArray) -> ScalarOrArray:
         log_depo = self._interpolator(time)
         discount_factor = np.exp(-log_depo)
         return discount_factor
@@ -40,7 +40,7 @@ class InternalForwardCurve(ForwardCurve):
                                                                inter_type=InterpolationType.linear,
                                                                extra_type=ExtrapolationType.nan)  # todo: extrapolation
 
-    def get_forward(self, time: float) -> float:
+    def get_forward(self, time: ScalarOrArray) -> ScalarOrArray:
         log_depo_diff = self._interpolator(time)
         forward = self._spot * np.exp(log_depo_diff)
         return forward

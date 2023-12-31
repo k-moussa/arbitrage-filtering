@@ -50,7 +50,7 @@ class FilterType(Enum):
 
 class RateCurve(ABC):
     @abstractmethod
-    def get_zero_rate(self, time: float) -> float:
+    def get_zero_rate(self, time: ScalarOrArray) -> ScalarOrArray:
         """ Computes the zero rate for given time (in years).
 
         :param time:
@@ -58,7 +58,7 @@ class RateCurve(ABC):
         """
 
     @abstractmethod
-    def get_discount_factor(self, time: float) -> float:
+    def get_discount_factor(self, time: ScalarOrArray) -> ScalarOrArray:
         """ Computes the discount factor for given time (in years).
 
         :param time:
@@ -68,7 +68,7 @@ class RateCurve(ABC):
 
 class ForwardCurve(ABC):
     @abstractmethod
-    def get_forward(self, time: float) -> float:
+    def get_forward(self, time: ScalarOrArray) -> ScalarOrArray:
         """ Computes the forward price for given time (in years).
 
         :param time:
