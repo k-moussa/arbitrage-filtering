@@ -1,5 +1,6 @@
 """ This module allows for creating instances of the OptionQuoteProcessor class. """
 
+import numpy as np
 from .internal.input_checking import check_create_q_proc_args
 from .globals import *
 from .internal.option_quote_processor import InternalQuoteProcessor

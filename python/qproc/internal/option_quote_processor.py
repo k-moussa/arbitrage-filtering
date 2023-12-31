@@ -1,5 +1,6 @@
 """ This module implements the InternalQuoteProcessor class. """
 
+import numpy as np
 from copy import copy, deepcopy
 from ..globals import *
 from .arbitrage_filter import create_filter, ArbitrageFilter

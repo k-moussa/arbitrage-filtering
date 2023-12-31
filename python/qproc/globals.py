@@ -1,10 +1,10 @@
 """ This module collects all exposed types from the qproc package. """
 
-import numpy as np
 import pandas as pd
 from enum import Enum
 from abc import ABC, abstractmethod
-from typing import final, Optional, Tuple, Union
+from typing import final, Optional, Tuple
+from numcomp import ScalarOrArray
 
 CALENDAR_DAYS_YEAR: final = 365
 EXPIRY_KEY: final = 'expiry'
@@ -16,9 +16,6 @@ LIQ_KEY: final = 'liq'
 
 DEFAULT_SMOOTHING_PARAM: final = 0.0
 DEFAULT_SMOOTHING_PARAM_GRID: final = (0.1, 0.2, 0.3, 0.4, 0.5)
-
-Scalar: final = Union[int, float]
-ScalarOrArray: final = Union[Scalar, np.ndarray]
 
 
 class SurfacePlotType(Enum):

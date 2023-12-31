@@ -1,7 +1,6 @@
 """ This module allows for constructing a quote surface from input data. """
 
 import numpy as np
-from typing import Optional
 from ..globals import *
 from .quote_structures import QuoteSurface, QuoteSlice, Quote
 
