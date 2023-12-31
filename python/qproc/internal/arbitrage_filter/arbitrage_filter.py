@@ -13,7 +13,8 @@ class StrikeFilter(ArbitrageFilter):
                  smoothing_param: Optional[float],
                  smoothing_param_grid: Tuple[float]):
 
-        self.arbitrage_free_collection: ArbitrageFreeCollection = ArbitrageFreeCollection()
+        self.arbitrage_free_collection: ArbitrageFreeCollection = ArbitrageFreeCollection(
+            price_unit=quote_surface.price_unit, strike_unit=quote_surface.strike_unit)
         self.quote_surface: QuoteSurface = quote_surface
 
         self._slice_index: Optional[int] = None
@@ -49,7 +50,7 @@ class StrikeFilter(ArbitrageFilter):
         quote_slice = self._get_current_quote_slice()
         quote_slice.quotes = self._current_a.get_arbitrage_free_quotes(exclude_strikes_0_and_inf=True)
 
-        self.arbitrage_free_collection.add_set(self._current_a)
+        self.arbitrage_free_collection.add_slice(self._current_a)
 
     def _initialize_current_variables(self, expiry: float):
         self._current_liq_sorted_quotes: List[Quote] = []
@@ -139,7 +140,7 @@ class ForwardExpiryFilter(StrikeFilter):
 
     def _compute_lower_bound_current_a(self, q: Quote) -> float:
         lower_bound = self._current_a.compute_lower_bound(q)
-        for a in self.arbitrage_free_collection.sets:
+        for a in self.arbitrage_free_collection.sets():
             lb_from_previous_slice = a.compute_lower_bound(q)
             if lb_from_previous_slice >= lower_bound:
                 lower_bound = lb_from_previous_slice

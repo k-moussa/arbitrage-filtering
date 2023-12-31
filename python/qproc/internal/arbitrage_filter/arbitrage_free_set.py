@@ -2,11 +2,11 @@
 
     Remark: The implementation assumes that the quotes are normalized call prices. """
 
-import bisect
 import numpy as np
 from typing import List, final
-from qproc.internal.sorting_algorithms import find_lt, find_gt, find_le
+from qproc.internal.sorting_algorithms import find_lt, find_gt
 from ..quote_structures import Quote, QuoteSlice, QuoteSurface
+from ...globals import StrikeUnit, PriceUnit
 
 QUOTE_0: final = Quote(bid=1.0, ask=1.0, strike=0.0, liq_proxy=np.nan)
 QUOTE_INF: final = Quote(bid=0.0, ask=0.0, strike=np.inf, liq_proxy=np.nan)
@@ -91,19 +91,16 @@ class ArbitrageFreeSet(QuoteSlice):
         return np.isfinite(right_adjacent_quote.strike)
 
 
-class ArbitrageFreeCollection:
-    def __init__(self):
-        self.sets: List[ArbitrageFreeSet] = []
-
-    def add_set(self, a: ArbitrageFreeSet):
-        bisect.insort_right(self.sets, a)
+class ArbitrageFreeCollection(QuoteSurface):
+    def __init__(self,
+                 price_unit: PriceUnit,
+                 strike_unit: StrikeUnit):
+        super().__init__(price_unit=price_unit, strike_unit=strike_unit)
         
     def get_set(self, expiry: float) -> ArbitrageFreeSet:
-        """ Returns the quote set for the given expiry; raises a runtime error if expiry is not equivalent. """
+        """ Wrapper function for type hinting in calling code. """
+        return self.get_slice(expiry)
 
-        dummy_set_for_indexing = ArbitrageFreeSet(expiry=expiry)
-        a = find_le(self.sets, dummy_set_for_indexing)
-        if a.expiry != expiry:
-            raise RuntimeError("expiry does not match any of the quote expiries")
-
-        return a
+    def sets(self) -> List[ArbitrageFreeSet]:
+        """ Wrapper function for type hinting in calling code. """
+        return self.slices
