@@ -6,38 +6,24 @@ import bisect
 import numpy as np
 from typing import List, final
 from qproc.internal.sorting_algorithms import find_lt, find_gt, find_le
-from ..quote_structures import Quote
+from ..quote_structures import Quote, QuoteSlice, QuoteSurface
 
 QUOTE_0: final = Quote(bid=1.0, ask=1.0, strike=0.0, liq_proxy=np.nan)
 QUOTE_INF: final = Quote(bid=0.0, ask=0.0, strike=np.inf, liq_proxy=np.nan)
 
 
-class ArbitrageFreeSet:
+class ArbitrageFreeSet(QuoteSlice):
     def __init__(self, expiry: float):
-        self.expiry: float = expiry
-        self._sorted_quotes: List[Quote] = [QUOTE_0, QUOTE_INF]
-
-    def __lt__(self, rhs):  # < operator
-        """ Overloads the < operator to allow for using the bisection module for efficient insertion and
-        lookup based on the expiry. """
-
-        return self.expiry < rhs.expiry
-
-    def __eq__(self, rhs):  # == operator
-        """ Overloads the == operator to allow for using the bisection module for efficient insertion and
-            lookup based on the expiry. """
-
-        return self.expiry == rhs.expiry
+        super().__init__(expiry=expiry)
+        self.quotes.append(QUOTE_0)
+        self.quotes.append(QUOTE_INF)
 
     def get_arbitrage_free_quotes(self, exclude_strikes_0_and_inf: bool) -> List[Quote]:
-        arbitrage_free_quotes = self._sorted_quotes
+        arbitrage_free_quotes = self.quotes
         if exclude_strikes_0_and_inf:
             return arbitrage_free_quotes[1:-1]
         else:
             return arbitrage_free_quotes
-
-    def add_quote(self, q: Quote):
-        bisect.insort_left(self._sorted_quotes, q)
 
     def compute_lower_bound(self, q: Quote) -> float:
         left_adjacent_quote = self._get_left_adjacent_quote(q)
@@ -55,7 +41,7 @@ class ArbitrageFreeSet:
         return max(lower_bound_from_left_difference_quotient, lower_bound_from_right_difference_quotient)
 
     def _get_left_adjacent_quote(self, q: Quote) -> Quote:
-        return find_lt(self._sorted_quotes, q)
+        return find_lt(self.quotes, q)
 
     def _compute_left_difference_quotient(self, q: Quote) -> float:
         if self._are_two_points_left_of_quote(q):
@@ -68,10 +54,10 @@ class ArbitrageFreeSet:
             return -1.0
         
     def _are_two_points_left_of_quote(self, q: Quote) -> bool:
-        return self._sorted_quotes[1].strike < q.strike
+        return self.quotes[1].strike < q.strike
     
     def _get_right_adjacent_quote(self, q: Quote) -> Quote:
-        return find_gt(self._sorted_quotes, q)
+        return find_gt(self.quotes, q)
     
     def _compute_right_difference_quotient(self, q: Quote) -> float:
         
@@ -85,7 +71,7 @@ class ArbitrageFreeSet:
             return 0.0
         
     def _are_two_points_right_of_quote(self, q: Quote) -> bool:
-        return self._sorted_quotes[-2].strike > q.strike
+        return self.quotes[-2].strike > q.strike
     
     def compute_upper_bound(self, q: Quote) -> float:
         left_adjacent_quote = self._get_left_adjacent_quote(q)
