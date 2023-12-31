@@ -4,7 +4,7 @@ from .internal.input_checking import check_create_q_proc_args
 from .globals import *
 from .internal.option_quote_processor import InternalQuoteProcessor
 from .internal.quote_surface_construction import get_quote_surface
-from .internal.curve_construction import InternalRateCurve
+from .internal.curve_construction import InternalRateCurve, InternalForwardCurve
 
 
 def create_q_proc(forwards: np.ndarray,
@@ -61,3 +61,17 @@ def create_rate_curve(times: np.ndarray,
     """
 
     return InternalRateCurve(times=times, zero_rates=zero_rates)
+
+
+def create_forward_curve(spot: float,
+                         times: np.ndarray,
+                         forwards: np.ndarray) -> ForwardCurve:
+    """ Returns a forward curve that inter- and extrapolates given forwards.
+
+    :param spot:
+    :param times:
+    :param forwards:
+    :return:
+    """
+
+    return InternalForwardCurve(spot=spot, times=times, forwards=forwards)
