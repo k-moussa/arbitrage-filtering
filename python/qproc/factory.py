@@ -1,6 +1,7 @@
 """ This module allows for creating instances of the OptionQuoteProcessor class. """
 
 import numpy as np
+from typing import Union
 from .internal.input_checking import check_create_q_proc_args
 from .globals import *
 from .internal.option_quote_processor import InternalQuoteProcessor
@@ -8,18 +9,20 @@ from .internal.quote_surface_construction import get_quote_surface
 from .internal.curve_construction import InternalRateCurve, InternalForwardCurve
 
 
-def create_q_proc(forwards: np.ndarray,
-                  rates: np.ndarray,
+def create_q_proc(forwards: Union[np.ndarray, ForwardCurve],
+                  rates: Union[np.ndarray, RateCurve],
                   option_prices: np.ndarray,
                   price_unit: PriceUnit,
                   expiries: np.ndarray,
                   strikes: np.ndarray,
                   strike_unit: StrikeUnit = StrikeUnit.strike,
-                  liquidity_proxies: Optional[np.ndarray] = None) -> OptionQuoteProcessor:
+                  liquidity_proxies: Optional[np.ndarray] = None,
+                  spot: float = np.nan) -> OptionQuoteProcessor:
     """ Creates an instance of OptionQuoteProcessor.
 
-    :param forwards: (n_expiries,) array with forwards for every expiry date.
-    :param rates: (n_expiries,) array with zero rates (= continuously-compounded yields) for every expiry date.
+    :param forwards: (n_expiries,) array with forwards for every expiry date, or a forward curve object.
+    :param rates: (n_expiries,) array with zero rates (= continuously-compounded yields) for every expiry date, or a
+        rate curve object.
     :param option_prices: (n,2) array with bid and ask prices or an (n,) array with mid prices. The option prices must
         be in ascending order w.r.t. to their expiry.
     :param price_unit: unit in which the option prices are expressed.
@@ -28,6 +31,7 @@ def create_q_proc(forwards: np.ndarray,
     :param strike_unit:
     :param liquidity_proxies: (n,) array with liquidity proxies (e.g., trading volume), used by the arbitrage filter.
         By default, -|(K - F)/F| is used, with strike K and forward F.
+    :param spot: the spot price; only needed if forwards is not a curve object.
     :return:
     """
 
@@ -40,6 +44,7 @@ def create_q_proc(forwards: np.ndarray,
                              strike_unit=strike_unit,
                              liquidity_proxies=liquidity_proxies)
 
+    # todo: remove forwards, rates
     quote_surface = get_quote_surface(forwards=forwards,
                                       rates=rates,
                                       option_prices=option_prices,
@@ -49,19 +54,16 @@ def create_q_proc(forwards: np.ndarray,
                                       strike_unit=strike_unit,
                                       liquidity_proxies=liquidity_proxies)
 
-    return InternalQuoteProcessor(quote_surface=quote_surface)
+    if isinstance(forwards, np.ndarray) or isinstance(rates, np.ndarray):
+        unique_expiries = np.sort(np.unique(expiries))
+        if isinstance(forwards, np.ndarray):
+            forwards = create_forward_curve(spot=spot, times=unique_expiries, forwards=forwards)
+        if isinstance(rates, np.ndarray):
+            rates = create_rate_curve(times=unique_expiries, zero_rates=rates)
 
-
-def create_rate_curve(times: np.ndarray,
-                      zero_rates: np.ndarray) -> RateCurve:
-    """ Returns a rate curve that inter- and extrapolates given zero rates.
-
-    :param times:
-    :param zero_rates: continuously compounded zero rates.
-    :return:
-    """
-
-    return InternalRateCurve(times=times, zero_rates=zero_rates)
+    return InternalQuoteProcessor(quote_surface=quote_surface,
+                                  forward_curve=forwards,
+                                  rates_curve=rates)
 
 
 def create_forward_curve(spot: float,
@@ -76,3 +78,15 @@ def create_forward_curve(spot: float,
     """
 
     return InternalForwardCurve(spot=spot, times=times, forwards=forwards)
+
+
+def create_rate_curve(times: np.ndarray,
+                      zero_rates: np.ndarray) -> RateCurve:
+    """ Returns a rate curve that inter- and extrapolates given zero rates.
+
+    :param times:
+    :param zero_rates: continuously compounded zero rates.
+    :return:
+    """
+
+    return InternalRateCurve(times=times, zero_rates=zero_rates)

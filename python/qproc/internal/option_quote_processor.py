@@ -17,8 +17,14 @@ class BoundType(Enum):
 
 
 class InternalQuoteProcessor(OptionQuoteProcessor):
-    def __init__(self, quote_surface: QuoteSurface):
+    def __init__(self,
+                 quote_surface: QuoteSurface,
+                 forward_curve: ForwardCurve,
+                 rates_curve: RateCurve):
+
         self._quote_surface: QuoteSurface = quote_surface
+        self._forward_curve: ForwardCurve = forward_curve
+        self._rates_curve: RateCurve = rates_curve
         self._arbitrage_filter: Optional[ArbitrageFilter] = None
 
     @staticmethod

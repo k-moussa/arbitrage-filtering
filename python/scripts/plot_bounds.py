@@ -15,7 +15,8 @@ def main():
                                           strikes=option_data.strikes,
                                           expiries=option_data.expiries,
                                           forwards=option_data.forwards,
-                                          rates=option_data.rates)
+                                          rates=option_data.rates,
+                                          spot=option_data.spot)
 
     quote_processor.filter(filter_type=qproc.FilterType.discard)
 
