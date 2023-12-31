@@ -87,14 +87,14 @@ class OptionQuoteProcessor(ABC):
 
     @staticmethod
     def transform_strike(strike: ScalarOrArray,
-                         strike_unit: StrikeUnit,
-                         target_strike_unit: StrikeUnit,
+                         input_strike_unit: StrikeUnit,
+                         output_strike_unit: StrikeUnit,
                          forward: float) -> ScalarOrArray:
         """ Transforms the given strike(s) to the desired strike unit.
 
         :param strike:
-        :param strike_unit:
-        :param target_strike_unit
+        :param input_strike_unit:
+        :param output_strike_unit
         :param forward:
         :return: transformed strike(s), of the same type and shape as strike.
         """
@@ -103,8 +103,8 @@ class OptionQuoteProcessor(ABC):
     def transform_price(strike: ScalarOrArray,
                         strike_unit: StrikeUnit,
                         price: ScalarOrArray,
-                        price_unit: PriceUnit,
-                        target_price_unit: PriceUnit,
+                        input_price_unit: PriceUnit,
+                        output_price_unit: PriceUnit,
                         expiry: float,
                         discount_factor: float,
                         forward: float) -> ScalarOrArray:
@@ -113,8 +113,8 @@ class OptionQuoteProcessor(ABC):
         :param strike:
         :param strike_unit
         :param price:
-        :param price_unit:
-        :param target_price_unit:
+        :param input_price_unit:
+        :param output_price_unit:
         :param expiry:
         :param discount_factor:
         :param forward:

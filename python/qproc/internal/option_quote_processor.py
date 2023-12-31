@@ -22,94 +22,93 @@ class InternalQuoteProcessor(OptionQuoteProcessor):
 
     @staticmethod
     def transform_strike(strike: ScalarOrArray,
-                         strike_unit: StrikeUnit,
-                         target_strike_unit: StrikeUnit,
+                         input_strike_unit: StrikeUnit,
+                         output_strike_unit: StrikeUnit,
                          forward: float) -> ScalarOrArray:
 
-        if strike_unit is target_strike_unit:
+        if input_strike_unit is output_strike_unit:
             return strike
 
         strike = deepcopy(strike)   # do not overwrite input
 
         # map to actual strike
-        if strike_unit is not StrikeUnit.strike:  # map to strike
-            if strike_unit is StrikeUnit.moneyness:
+        if input_strike_unit is not StrikeUnit.strike:  # map to strike
+            if input_strike_unit is StrikeUnit.moneyness:
                 strike *= forward
-            elif strike_unit is StrikeUnit.log_moneyness:
+            elif input_strike_unit is StrikeUnit.log_moneyness:
                 strike = np.exp(strike) * forward
             else:
-                raise RuntimeError(f"Unhandled strike_unit {strike_unit.name}")
+                raise RuntimeError(f"Unhandled input_strike_unit {input_strike_unit.name}")
 
-        if target_strike_unit is StrikeUnit.strike:
+        if output_strike_unit is StrikeUnit.strike:
             return strike
-        elif target_strike_unit is StrikeUnit.moneyness:
+        elif output_strike_unit is StrikeUnit.moneyness:
             return strike / forward
-        elif target_strike_unit is StrikeUnit.log_moneyness:
+        elif output_strike_unit is StrikeUnit.log_moneyness:
             return np.log(strike / forward)
         else:
-            raise RuntimeError(f"Unhandled target_strike_unit {target_strike_unit.name}")
+            raise RuntimeError(f"Unhandled output_strike_unit {output_strike_unit.name}")
 
     @staticmethod
     def transform_price(strike: ScalarOrArray,
                         strike_unit: StrikeUnit,
                         price: ScalarOrArray,
-                        price_unit: PriceUnit,
-                        target_price_unit: PriceUnit,
+                        input_price_unit: PriceUnit,
+                        output_price_unit: PriceUnit,
                         expiry: float,
                         discount_factor: float,
                         forward: float) -> ScalarOrArray:
         
-        actual_strike = InternalQuoteProcessor.transform_strike(strike=strike, strike_unit=strike_unit, 
-                                                                target_strike_unit=StrikeUnit.strike, forward=forward)
+        actual_strike = InternalQuoteProcessor.transform_strike(strike=strike, input_strike_unit=strike_unit,
+                                                                output_strike_unit=StrikeUnit.strike, forward=forward)
 
         if not isinstance(actual_strike, np.ndarray):  # scalar
-            return InternalQuoteProcessor._get_single_price(actual_strike=actual_strike, price=price,
-                                                            price_unit=price_unit, target_price_unit=target_price_unit,
-                                                            expiry=expiry, discount_factor=discount_factor,
-                                                            forward=forward)
+            return InternalQuoteProcessor._get_single_price(
+                actual_strike=actual_strike, price=price, input_price_unit=input_price_unit,
+                output_price_unit=output_price_unit, expiry=expiry, discount_factor=discount_factor, forward=forward)
         else: 
-            target_prices = np.full(shape=actual_strike.shape, fill_value=np.nan)
+            output_prices = np.full(shape=actual_strike.shape, fill_value=np.nan)
             for i in range(actual_strike.size):
-                target_prices[i] = InternalQuoteProcessor._get_single_price(
-                    actual_strike=actual_strike[i], price=price[i], price_unit=price_unit,
-                    target_price_unit=target_price_unit,  expiry=expiry, discount_factor=discount_factor,
+                output_prices[i] = InternalQuoteProcessor._get_single_price(
+                    actual_strike=actual_strike[i], price=price[i], input_price_unit=input_price_unit,
+                    output_price_unit=output_price_unit,  expiry=expiry, discount_factor=discount_factor,
                     forward=forward)
             
-            return target_prices
+            return output_prices
         
     @staticmethod
     def _get_single_price(actual_strike: float,
                           price: float,
-                          price_unit: PriceUnit,
-                          target_price_unit: PriceUnit,
+                          input_price_unit: PriceUnit,
+                          output_price_unit: PriceUnit,
                           expiry: float,
                           discount_factor: float,
                           forward: float) -> float:
 
-        if price_unit is target_price_unit:
+        if input_price_unit is output_price_unit:
             return price
 
-        if price_unit is not PriceUnit.call:
-            if price_unit in (PriceUnit.vol, PriceUnit.total_var):
-                if price_unit is PriceUnit.total_var:  # map to vol
+        if input_price_unit is not PriceUnit.call:
+            if input_price_unit in (PriceUnit.vol, PriceUnit.total_var):
+                if input_price_unit is PriceUnit.total_var:  # map to vol
                     price = np.sqrt(price / expiry)
 
                 price = discounted_black(forward=forward, strike=actual_strike, vol=price, expiry=expiry,
                                          discount_factor=discount_factor, call_one_else_put_minus_one=1)
-            elif price_unit is PriceUnit.normalized_call:
+            elif input_price_unit is PriceUnit.normalized_call:
                 zero_strike_call = compute_zero_strike_call_value(discount_factor=discount_factor, forward=forward)
                 price *= zero_strike_call
 
-        if target_price_unit is PriceUnit.call:
+        if output_price_unit is PriceUnit.call:
             return price
-        elif target_price_unit in (PriceUnit.vol, PriceUnit.total_var):
+        elif output_price_unit in (PriceUnit.vol, PriceUnit.total_var):
             price = implied_vol_for_discounted_option(discounted_option_price=price, forward=forward,
                                                       strike=actual_strike, expiry=expiry,
                                                       discount_factor=discount_factor,
                                                       call_one_else_put_minus_one=1)
-            if target_price_unit is PriceUnit.total_var:
+            if output_price_unit is PriceUnit.total_var:
                 price = (price ** 2) * expiry
-        elif target_price_unit is PriceUnit.normalized_call:
+        elif output_price_unit is PriceUnit.normalized_call:
             zero_strike_call = compute_zero_strike_call_value(discount_factor=discount_factor, forward=forward)
             price /= zero_strike_call
             
@@ -121,8 +120,8 @@ class InternalQuoteProcessor(OptionQuoteProcessor):
                param_grid: Tuple[float] = DEFAULT_SMOOTHING_PARAM_GRID):
 
         self.transform_quote_surface(quote_surface=self._quote_surface,
-                                     target_price_unit=PriceUnit.normalized_call,
-                                     target_strike_unit=StrikeUnit.moneyness,
+                                     output_price_unit=PriceUnit.normalized_call,
+                                     output_strike_unit=StrikeUnit.moneyness,
                                      in_place=True)
 
         self._arbitrage_filter = create_filter(quote_surface=self._quote_surface,
@@ -167,15 +166,15 @@ class InternalQuoteProcessor(OptionQuoteProcessor):
         quote_slice = self._quote_surface.get_slice(expiry)
 
         # map strike to units of quote surface
-        transformed_strike = self.transform_strike(strike=strike, strike_unit=strike_unit,
-                                                   target_strike_unit=self._quote_surface.strike_unit,
+        transformed_strike = self.transform_strike(strike=strike, input_strike_unit=strike_unit,
+                                                   output_strike_unit=self._quote_surface.strike_unit,
                                                    forward=quote_slice.forward)
         normalized_call_bound = self._compute_normalized_call_bound(expiry=expiry,
                                                                     transformed_strike=transformed_strike,
                                                                     bound_type=bound_type)
 
         price_bound = self.transform_price(strike=strike, strike_unit=strike_unit, price=normalized_call_bound,
-                                           price_unit=PriceUnit.normalized_call, target_price_unit=price_unit,
+                                           input_price_unit=PriceUnit.normalized_call, output_price_unit=price_unit,
                                            expiry=expiry, discount_factor=quote_slice.discount_factor,
                                            forward=quote_slice.forward)
         return price_bound
@@ -213,8 +212,8 @@ class InternalQuoteProcessor(OptionQuoteProcessor):
 
         quote_df = pd.DataFrame(np.nan, index=np.arange(self._quote_surface.n_quotes()), columns=COL_NAMES)
         trans_quote_surface = self.transform_quote_surface(quote_surface=self._quote_surface,
-                                                           target_price_unit=price_unit,
-                                                           target_strike_unit=strike_unit,
+                                                           output_price_unit=price_unit,
+                                                           output_strike_unit=strike_unit,
                                                            in_place=False)
 
         row_index = 0
@@ -233,8 +232,8 @@ class InternalQuoteProcessor(OptionQuoteProcessor):
 
     @staticmethod
     def transform_quote_surface(quote_surface: QuoteSurface,
-                                target_price_unit: PriceUnit,
-                                target_strike_unit: StrikeUnit,
+                                output_price_unit: PriceUnit,
+                                output_strike_unit: StrikeUnit,
                                 in_place: bool) -> QuoteSurface:
 
         if in_place:
@@ -245,31 +244,31 @@ class InternalQuoteProcessor(OptionQuoteProcessor):
         for qs in trans_quote_surface.slices:
             for q in qs.quotes:
                 InternalQuoteProcessor.transform_quote(q=q,
-                                                       price_unit=quote_surface.price_unit,
-                                                       target_price_unit=target_price_unit,
-                                                       strike_unit=quote_surface.strike_unit,
-                                                       target_strike_unit=target_strike_unit,
+                                                       input_price_unit=quote_surface.price_unit,
+                                                       output_price_unit=output_price_unit,
+                                                       input_strike_unit=quote_surface.strike_unit,
+                                                       output_strike_unit=output_strike_unit,
                                                        expiry=qs.expiry,
                                                        discount_factor=qs.discount_factor,
                                                        forward=qs.forward,
                                                        in_place=True)
                 
-        trans_quote_surface.price_unit = target_price_unit
-        trans_quote_surface.strike_unit = target_strike_unit
+        trans_quote_surface.price_unit = output_price_unit
+        trans_quote_surface.strike_unit = output_strike_unit
         return trans_quote_surface
 
     @staticmethod
     def transform_quote(q: Quote,
-                        price_unit: PriceUnit,
-                        target_price_unit: PriceUnit,
-                        strike_unit: StrikeUnit,
-                        target_strike_unit: StrikeUnit,
+                        input_price_unit: PriceUnit,
+                        output_price_unit: PriceUnit,
+                        input_strike_unit: StrikeUnit,
+                        output_strike_unit: StrikeUnit,
                         expiry: float,
                         discount_factor: float,
                         forward: float,
                         in_place: bool) -> Quote:
 
-        if price_unit is target_price_unit and strike_unit is target_strike_unit:
+        if input_price_unit is output_price_unit and input_strike_unit is output_strike_unit:
             return q
 
         if in_place:
@@ -277,17 +276,17 @@ class InternalQuoteProcessor(OptionQuoteProcessor):
         else:
             trans_q = copy(q)
 
-        actual_strike = InternalQuoteProcessor.transform_strike(trans_q.strike, strike_unit=strike_unit,
-                                                                target_strike_unit=StrikeUnit.strike, forward=forward)
+        actual_strike = InternalQuoteProcessor.transform_strike(trans_q.strike, input_strike_unit=input_strike_unit,
+                                                                output_strike_unit=StrikeUnit.strike, forward=forward)
 
         trans_q.strike = InternalQuoteProcessor.transform_strike(strike=actual_strike,
-                                                                 strike_unit=StrikeUnit.strike,
-                                                                 target_strike_unit=target_strike_unit,
+                                                                 input_strike_unit=StrikeUnit.strike,
+                                                                 output_strike_unit=output_strike_unit,
                                                                  forward=forward)
         
         InternalQuoteProcessor._update_price_unit(actual_strike=actual_strike,
-                                                  price_unit=price_unit,
-                                                  target_price_unit=target_price_unit,
+                                                  input_price_unit=input_price_unit,
+                                                  output_price_unit=output_price_unit,
                                                   expiry=expiry,
                                                   discount_factor=discount_factor,
                                                   forward=forward,
@@ -297,16 +296,16 @@ class InternalQuoteProcessor(OptionQuoteProcessor):
 
     @staticmethod
     def _update_price_unit(actual_strike: float,
-                           price_unit: PriceUnit,
-                           target_price_unit: PriceUnit,
+                           input_price_unit: PriceUnit,
+                           output_price_unit: PriceUnit,
                            expiry: float,
                            discount_factor: float,
                            forward: float,
                            q: Quote):
 
-        q.bid = InternalQuoteProcessor.transform_price(strike=actual_strike, strike_unit=StrikeUnit.strike, price=q.bid,
-                                                       price_unit=price_unit, target_price_unit=target_price_unit,
-                                                       expiry=expiry, discount_factor=discount_factor, forward=forward)
-        q.ask = InternalQuoteProcessor.transform_price(strike=actual_strike, strike_unit=StrikeUnit.strike, price=q.ask,
-                                                       price_unit=price_unit, target_price_unit=target_price_unit,
-                                                       expiry=expiry, discount_factor=discount_factor, forward=forward)
+        q.bid = InternalQuoteProcessor.transform_price(
+            strike=actual_strike, strike_unit=StrikeUnit.strike, price=q.bid, input_price_unit=input_price_unit,
+            output_price_unit=output_price_unit, expiry=expiry, discount_factor=discount_factor, forward=forward)
+        q.ask = InternalQuoteProcessor.transform_price(
+            strike=actual_strike, strike_unit=StrikeUnit.strike, price=q.ask, input_price_unit=input_price_unit,
+            output_price_unit=output_price_unit, expiry=expiry, discount_factor=discount_factor, forward=forward)
