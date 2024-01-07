@@ -24,9 +24,9 @@ def main():
                                     oqp=deepcopy(raw_data),
                                     filter_type=volsurface.FilterType.strike)
 
-    price_unit = qproc.PriceUnit.vol
-    strike_unit = qproc.StrikeUnit.log_moneyness
-    strike_range = (-10.0, -3.0)
+    price_unit = qproc.PriceUnit.normalized_call
+    strike_unit = qproc.StrikeUnit.moneyness
+    strike_range = (0.1, 3.0)
     plot_vol_surface(quote_processor=raw_data,
                      vol_surface=vol_surface,
                      strike_range=strike_range,
