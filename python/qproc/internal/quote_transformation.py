@@ -1,12 +1,15 @@
 """ This module collects functionality to transform strikes, prices, and quotes to desired units. """
 
 import numpy as np
+from typing import final
 from copy import copy, deepcopy
 from numcomp import ScalarOrArray
 from ..globals import StrikeUnit, PriceUnit
 from .quote_structures import Quote
 from .volatility_functions import implied_vol_for_discounted_option, discounted_black
 from .zero_strike_computation import compute_zero_strike_call_value
+
+VOL_UNITS: final = (PriceUnit.vol, PriceUnit.total_var)
 
 
 def transform_strike(strike: ScalarOrArray,
@@ -76,12 +79,15 @@ def _get_single_price(actual_strike: float,
     if input_price_unit is output_price_unit:
         return price
 
-    if input_price_unit is not PriceUnit.call:
-        if input_price_unit in (PriceUnit.vol, PriceUnit.total_var):
-            if input_price_unit is PriceUnit.total_var:  # map to vol
-                price = np.sqrt(price / expiry)
+    if input_price_unit in VOL_UNITS and output_price_unit in VOL_UNITS:  # circumvent conversion via call price
+        return _transform_vol(price=price, expiry=expiry, input_price_unit=input_price_unit,
+                              output_price_unit=output_price_unit)
 
-            price = discounted_black(forward=forward, strike=actual_strike, vol=price, expiry=expiry,
+    if input_price_unit is not PriceUnit.call:
+        if input_price_unit in VOL_UNITS:  # map to vol
+            vol = _transform_vol(price=price, expiry=expiry, input_price_unit=input_price_unit,
+                                 output_price_unit=PriceUnit.vol)
+            price = discounted_black(forward=forward, strike=actual_strike, vol=vol, expiry=expiry,
                                      discount_factor=discount_factor, call_one_else_put_minus_one=1)
         elif input_price_unit is PriceUnit.normalized_call:
             zero_strike_call = compute_zero_strike_call_value(discount_factor=discount_factor, forward=forward)
@@ -89,18 +95,33 @@ def _get_single_price(actual_strike: float,
 
     if output_price_unit is PriceUnit.call:
         return price
-    elif output_price_unit in (PriceUnit.vol, PriceUnit.total_var):
+    elif output_price_unit in VOL_UNITS:
         price = implied_vol_for_discounted_option(discounted_option_price=price, forward=forward,
                                                   strike=actual_strike, expiry=expiry,
                                                   discount_factor=discount_factor,
                                                   call_one_else_put_minus_one=1)
-        if output_price_unit is PriceUnit.total_var:
-            price = (price ** 2) * expiry
+        price = _transform_vol(price=price, expiry=expiry, input_price_unit=PriceUnit.vol,
+                               output_price_unit=output_price_unit)
     elif output_price_unit is PriceUnit.normalized_call:
         zero_strike_call = compute_zero_strike_call_value(discount_factor=discount_factor, forward=forward)
         price /= zero_strike_call
 
     return price
+
+
+def _transform_vol(price: float,
+                   expiry: float,
+                   input_price_unit: PriceUnit,
+                   output_price_unit: PriceUnit) -> float:
+
+    if input_price_unit is output_price_unit:
+        return price
+    elif input_price_unit is PriceUnit.vol and output_price_unit is PriceUnit.total_var:
+        return (price ** 2) * expiry
+    elif input_price_unit is PriceUnit.total_var and output_price_unit is PriceUnit.vol:
+        return np.sqrt(price / expiry)
+    else:
+        raise RuntimeError("One of the price units are not of the vol type.")
 
 
 def transform_quote(q: Quote,
