@@ -1,7 +1,7 @@
 """ This module implements the VolSurface class. """
 
 import numpy as np
-from typing import Optional, List, final
+from typing import Optional, List, Tuple, final
 from numcomp import InterpolationType, Interpolator, create_interpolator, ExtrapolationType
 from qproc import ScalarOrArray, PriceUnit, StrikeUnit, OptionQuoteProcessor, FilterType, EXPIRY_KEY, STRIKE_KEY, \
     MID_KEY
@@ -11,6 +11,7 @@ from .functional_interpolator import FunctionalInterpolator, FuncInterType
 SMILE_STRIKE_UNIT: final = StrikeUnit.log_moneyness
 SMILE_PRICE_UNIT: final = PriceUnit.vol
 EXPIRY_PRICE_UNIT: final = PriceUnit.total_var
+ABS_LOG_MONEYNESS_EXTRA_POINT: final = 3.0
 
 
 class InterpolationData:
@@ -57,9 +58,11 @@ class InternalVolSurface(VolSurface):
                  smile_inter_type: InterpolationType,
                  oqp: OptionQuoteProcessor,
                  filter_type: Optional[FilterType],
-                 filter_smoothness_param: float):
+                 filter_smoothness_param: float,
+                 extrapolation_param: Optional[float]):
 
         self._smile_inter_type: InterpolationType = smile_inter_type
+        self._extrapolation_param: Optional[float] = extrapolation_param
 
         self._oqp: OptionQuoteProcessor = oqp
         self._filtering = filter_type is not None
@@ -91,11 +94,49 @@ class InternalVolSurface(VolSurface):
         for i in range(expiries.size):
             expiry = expiries[i]
             quotes_for_expiry = quotes.loc[quotes[EXPIRY_KEY] == expiry]
-            strikes = quotes_for_expiry[STRIKE_KEY].values
-            mid_prices = quotes_for_expiry[MID_KEY].values
-            data.append(InterpolationData(expiry=expiry, x=strikes, y=mid_prices))
+            strikes, prices = self._get_augmented_quotes(strikes=quotes_for_expiry[STRIKE_KEY].values,
+                                                         prices=quotes_for_expiry[MID_KEY].values, expiry=expiry)
+            data.append(InterpolationData(expiry=expiry, x=strikes, y=prices))
 
         return data
+
+    def _get_augmented_quotes(self,
+                              strikes: np.ndarray,
+                              prices: np.ndarray,
+                              expiry: float) -> Tuple[np.ndarray, np.ndarray]:
+
+        augmented_strikes = strikes
+        augmented_prices = prices
+        if self._extrapolation_param is not None:
+            if strikes[-1] < ABS_LOG_MONEYNESS_EXTRA_POINT:
+                extra_vol_rhs = self._get_extrapolated_value(log_moneyness=ABS_LOG_MONEYNESS_EXTRA_POINT, expiry=expiry,
+                                                             base_vol=augmented_prices[-1])
+                augmented_prices = np.append(augmented_prices, values=extra_vol_rhs)
+                augmented_strikes = np.append(augmented_strikes, values=ABS_LOG_MONEYNESS_EXTRA_POINT)
+            if strikes[0] > -ABS_LOG_MONEYNESS_EXTRA_POINT:
+                extra_vol_lhs = self._get_extrapolated_value(log_moneyness=-ABS_LOG_MONEYNESS_EXTRA_POINT,
+                                                             expiry=expiry, base_vol=augmented_prices[0])
+                augmented_prices = np.insert(augmented_prices, obj=0, values=extra_vol_lhs)
+                augmented_strikes = np.insert(augmented_strikes, obj=0, values=-ABS_LOG_MONEYNESS_EXTRA_POINT)
+
+        return augmented_strikes, augmented_prices
+
+    def _get_extrapolated_value(self,
+                                log_moneyness: float,
+                                expiry: float,
+                                base_vol: float):
+
+        ub = self._oqp.compute_upper_bound(expiry=expiry, strike=log_moneyness, strike_unit=SMILE_STRIKE_UNIT,
+                                           price_unit=SMILE_PRICE_UNIT)
+        lb = self._oqp.compute_lower_bound(expiry=expiry, strike=log_moneyness, strike_unit=SMILE_STRIKE_UNIT,
+                                           price_unit=SMILE_PRICE_UNIT)
+        lb = max(lb, base_vol)
+        if lb > ub:
+            extrapolated_vol = ub
+        else:
+            extrapolated_vol = lb + self._extrapolation_param * (ub - lb)
+
+        return extrapolated_vol
 
     def get_price(self,
                   price_unit: PriceUnit,
