@@ -9,3 +9,4 @@
 
 from .globals import *
 from .factory import create_interpolator
+from .sorting_algorithms import index_eq, find_le, find_ge, find_gt, find_lt

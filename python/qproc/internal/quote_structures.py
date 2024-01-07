@@ -3,7 +3,7 @@
 import bisect
 from typing import List
 from ..globals import Side, StrikeUnit, PriceUnit
-from .sorting_algorithms import find_le
+from numcomp.sorting_algorithms import find_le
 
 
 class Quote:
