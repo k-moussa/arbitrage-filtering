@@ -1,6 +1,7 @@
 """ This module implements the VolSurface class. """
 
 import numpy as np
+import numcomp as nc
 from typing import Optional, List, Tuple, final
 from numcomp import InterpolationType, Interpolator, create_interpolator, ExtrapolationType
 from qproc import ScalarOrArray, PriceUnit, StrikeUnit, OptionQuoteProcessor, FilterType, EXPIRY_KEY, STRIKE_KEY, \
@@ -165,3 +166,26 @@ class InternalVolSurface(VolSurface):
 
     def _is_calibrated(self) -> bool:
         return self._vol_surface is not None
+
+    def compute_risk_neutral_density(self,
+                                     expiry: float,
+                                     x: ScalarOrArray) -> ScalarOrArray:
+
+        if not self._is_calibrated():
+            raise RuntimeError("calibrate() must be called before this function.")
+
+        func = lambda z: self._compute_undiscounted_call_price(strike=z, expiry=expiry)
+        density_values = nc.compute_derivative(func=func, x=x, order=2)
+        return density_values
+
+    def _compute_undiscounted_call_price(self,
+                                         strike: ScalarOrArray,
+                                         expiry: float) -> ScalarOrArray:
+
+        log_moneyness = self._oqp.transform_strike(expiry=expiry, strike=strike, input_strike_unit=StrikeUnit.strike,
+                                                   output_strike_unit=StrikeUnit.log_moneyness)
+        vol = self._vol_surface(x=log_moneyness, y=expiry)
+        undiscounted_call_price = self._oqp.transform_price(
+            strike=strike, strike_unit=StrikeUnit.strike, price=vol, input_price_unit=PriceUnit.vol,
+            output_price_unit=PriceUnit.undiscounted_call, expiry=expiry)
+        return undiscounted_call_price
