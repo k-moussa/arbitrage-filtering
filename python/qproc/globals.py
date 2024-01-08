@@ -26,8 +26,9 @@ class SurfacePlotType(Enum):
 class PriceUnit(Enum):
     vol = 0
     call = 1
-    normalized_call = 2
-    total_var = 3
+    undiscounted_call = 2
+    normalized_call = 3
+    total_var = 4
 
 
 class StrikeUnit(Enum):

@@ -89,6 +89,8 @@ def _get_single_price(actual_strike: float,
                                  output_price_unit=PriceUnit.vol)
             price = discounted_black(forward=forward, strike=actual_strike, vol=vol, expiry=expiry,
                                      discount_factor=discount_factor, call_one_else_put_minus_one=1)
+        elif input_price_unit is PriceUnit.undiscounted_call:
+            price *= discount_factor
         elif input_price_unit is PriceUnit.normalized_call:
             zero_strike_call = compute_zero_strike_call_value(discount_factor=discount_factor, forward=forward)
             price *= zero_strike_call
@@ -102,6 +104,8 @@ def _get_single_price(actual_strike: float,
                                                   call_one_else_put_minus_one=1)
         price = _transform_vol(price=price, expiry=expiry, input_price_unit=PriceUnit.vol,
                                output_price_unit=output_price_unit)
+    elif output_price_unit is PriceUnit.undiscounted_call:
+        price /= discount_factor
     elif output_price_unit is PriceUnit.normalized_call:
         zero_strike_call = compute_zero_strike_call_value(discount_factor=discount_factor, forward=forward)
         price /= zero_strike_call
