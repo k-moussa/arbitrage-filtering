@@ -5,6 +5,11 @@ from enum import Enum
 from abc import ABC, abstractmethod
 from typing import final, Union
 
+MACHINE_EPS: final = float(2 ** (-53))  # max relative error corresponding to 1/2 ULP
+SQUARE_ROOT_MACHINE_EPS: final = np.sqrt(MACHINE_EPS)
+CUBE_ROOT_MACHINE_EPS: final = np.cbrt(MACHINE_EPS)
+FOURTH_ROOT_MACHINE_EPS: final = np.power(MACHINE_EPS, 1/4)
+
 Integer: final = Union[int, np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32, np.uint64]
 Float: final = Union[float, np.float16, np.float32, np.float64, np.float128]
 Complex: final = Union[complex, np.complex64, np.complex128, np.complex256]

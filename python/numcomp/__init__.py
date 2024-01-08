@@ -10,3 +10,4 @@
 from .globals import *
 from .factory import create_interpolator
 from .sorting_algorithms import index_eq, find_le, find_ge, find_gt, find_lt
+from .finite_difference import compute_derivative, compute_gradient, compute_jacobian, compute_hessian
