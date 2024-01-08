@@ -11,7 +11,7 @@ from data import DataSetName, get_option_data
 
 
 def main():
-    option_data = get_option_data(DataSetName.dax_13_jun_2000)
+    option_data = get_option_data(DataSetName.tsla_15_jun_2018)
     raw_data = qproc.create_q_proc(option_prices=option_data.option_prices,
                                    price_unit=option_data.price_unit,
                                    strikes=option_data.strikes,
@@ -38,10 +38,10 @@ def create_plots(raw_data: qproc.OptionQuoteProcessor,
     
     raw_vol_surface.calibrate()
     filtered_vol_surface.calibrate()
-    # plot_vol_smiles(raw_data=raw_data, raw_vol_surface=raw_vol_surface, filtered_vol_surface=filtered_vol_surface,
-    #                 strike_unit=qproc.StrikeUnit.log_moneyness, price_unit=qproc.PriceUnit.vol)
-    # plot_vol_smiles(raw_data=raw_data, raw_vol_surface=raw_vol_surface, filtered_vol_surface=filtered_vol_surface,
-    #                 strike_unit=qproc.StrikeUnit.strike, price_unit=qproc.PriceUnit.call)
+    plot_vol_smiles(raw_data=raw_data, raw_vol_surface=raw_vol_surface, filtered_vol_surface=filtered_vol_surface,
+                    strike_unit=qproc.StrikeUnit.log_moneyness, price_unit=qproc.PriceUnit.vol)
+    plot_vol_smiles(raw_data=raw_data, raw_vol_surface=raw_vol_surface, filtered_vol_surface=filtered_vol_surface,
+                    strike_unit=qproc.StrikeUnit.strike, price_unit=qproc.PriceUnit.call)
 
     plot_risk_neutral_density(raw_data=raw_data, raw_vol_surface=raw_vol_surface,
                               filtered_vol_surface=filtered_vol_surface)
