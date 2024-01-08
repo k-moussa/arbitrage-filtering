@@ -3,14 +3,8 @@
 import splines
 from scipy.interpolate import CubicSpline, PchipInterpolator
 from typing import Callable
+from .type_utils import size
 from .globals import *
-
-
-def size(x: ScalarOrArray) -> int:
-    if isinstance(x, np.ndarray):
-        return x.size
-    else:
-        return 1
 
 
 class InternalInterpolator(Interpolator, ABC):

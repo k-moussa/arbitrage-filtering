@@ -2,39 +2,56 @@
     based on the discussion in Numerical Recipes. """
 
 import numpy as np
-from enum import Enum
 from typing import Callable, Final
 from .globals import CUBE_ROOT_MACHINE_EPS, FOURTH_ROOT_MACHINE_EPS, FloatOrArray
+from .type_utils import size as size_func
 
 _LOWER_BOUND_CHARACTERISTIC_SCALE: Final = 0.001
 
 
-class DerivativeOrder(Enum):
-    first_order = 1
-    second_order = 2
-
-
 def compute_derivative(func: Callable[[float], float],
-                       x: float,
+                       x: FloatOrArray,
+                       order: int,
                        args: tuple = (),
-                       step_size: float = None) -> float:
-    """ Computes the first-order derivative using finite differences for a given function at the point x.
+                       step_size: float = None) -> FloatOrArray:
+    """ Computes the first- or second-order derivative using finite differences for a given function at the point x.
 
     Remarks: x is assumed to correspond to the first parameter of func.
 
     :param func: a function f: R -> R, with x corresponding to its first parameter.
-    :param x: the point of interest.
+    :param x: the point(s) of interest.
+    :param order: 1 or 2, the order of which to compute the derivative.
     :param args: additional arguments to the function in the correct order.
     :param step_size: a scalar > 0.
-    :return: the fd estimate of the first-order derivative.
+    :return: the fd estimate(s) of the first-order derivative.
     """
 
-    grad = compute_gradient(func=func, x=np.array((x,)), args=args, step_size=step_size)
-    return grad[0]
+    if order != 1 and order != 2:
+        raise RuntimeError("order must be 1 or 2.")
+
+    scalar_input = size_func(x) == 1
+    if scalar_input:
+        x = np.array([x])
+
+    fd_derivatives = np.full(fill_value=np.nan, shape=x.shape)
+    x_arg = np.full(fill_value=np.nan, shape=(1,))
+    for i in range(x.size):
+        x_arg[0] = x[i]
+        if order == 1:
+            fd_derivatives[i] = compute_gradient(func=func, x=x_arg, args=args, step_size=step_size)[0]
+        else:  # order == 2:
+            fd_derivatives[i] = compute_hessian(func=func, x=x_arg, args=args, step_size=step_size)[0, 0]
+
+    if scalar_input:
+        return fd_derivatives[0]
+    else:
+        return fd_derivatives
 
 
-def compute_gradient(func: Callable[..., float], x: np.ndarray, args: tuple = (), step_size: float = None) \
-        -> np.ndarray:
+def compute_gradient(func: Callable[..., float],
+                     x: np.ndarray,
+                     args: tuple = (),
+                     step_size: float = None) -> np.ndarray:
     """ Computes the gradient using finite differences for a given function at the point x.
 
     Remarks: x is assumed to correspond to the first parameter of func.
@@ -51,7 +68,9 @@ def compute_gradient(func: Callable[..., float], x: np.ndarray, args: tuple = ()
     return gradient
 
 
-def compute_jacobian(func: Callable[[np.ndarray], np.ndarray], x: np.ndarray, args: tuple = (),
+def compute_jacobian(func: Callable[[np.ndarray], np.ndarray],
+                     x: np.ndarray,
+                     args: tuple = (),
                      step_size: float = None) -> np.ndarray:
     """ Computes the Jacobian using finite differences for a given function at the point x.
 
@@ -86,8 +105,10 @@ def compute_jacobian(func: Callable[[np.ndarray], np.ndarray], x: np.ndarray, ar
     return jacobian
 
 
-def compute_hessian(func: Callable[[np.ndarray], float], x: np.ndarray, args: tuple = (), step_size: float = None) \
-        -> np.ndarray:
+def compute_hessian(func: Callable[[np.ndarray], float],
+                    x: np.ndarray,
+                    args: tuple = (),
+                    step_size: float = None) -> np.ndarray:
     """ Computes the Hessian matrix using finite differences for a given function at the point x.
 
     :param func: a function f: R^n -> R, with x corresponding to its first parameter..
@@ -121,7 +142,9 @@ def _get_func_given_args(func: Callable[..., FloatOrArray], args: tuple = ()) ->
     return lambda x: func(x, *args)
 
 
-def get_step_sizes(x: np.ndarray, derivative_order: int, step_size: float = None) -> np.ndarray:
+def get_step_sizes(x: np.ndarray,
+                   derivative_order: int,
+                   step_size: float = None) -> np.ndarray:
     """ Returns an (x.size, 1) array for derivative_order 1, and an (x.size, x.size) array for derivative_order 2 """
 
     if step_size is None:
@@ -151,7 +174,8 @@ def get_step_sizes(x: np.ndarray, derivative_order: int, step_size: float = None
         return step_sizes
 
 
-def _get_abs_curvature_scale_estimates(x: np.ndarray, derivative_order: int) -> np.ndarray:
+def _get_abs_curvature_scale_estimates(x: np.ndarray,
+                                       derivative_order: int) -> np.ndarray:
     """ Returns an (x.size, 1) array for derivative_order 1, and an (x.size, x.size) array for derivative_order 2 """
 
     if derivative_order == 1:
@@ -176,14 +200,17 @@ def _get_optimal_relative_step_size(derivative_order: int) -> float:
         raise RuntimeError("derivative_order {:} not implemented.".format(derivative_order))
 
 
-def _get_selection_vector(size: int, index: int) -> np.ndarray:
+def _get_selection_vector(size: int,
+                          index: int) -> np.ndarray:
     selection_vector = np.zeros((size,))
     selection_vector[index] = 1.0
 
     return selection_vector
 
 
-def _compute_1st_derivative_fd(func: Callable[[np.ndarray], FloatOrArray], x: np.ndarray, step_size: float,
+def _compute_1st_derivative_fd(func: Callable[[np.ndarray], FloatOrArray],
+                               x: np.ndarray,
+                               step_size: float,
                                selection_vector: np.ndarray) -> FloatOrArray:
     """ Computes either a single 1st-order derivative, or an entire column of the Jacobian matrix. """
 
@@ -195,8 +222,11 @@ def _compute_1st_derivative_fd(func: Callable[[np.ndarray], FloatOrArray], x: np
     return fd_approximation
 
 
-def _compute_2nd_derivative_fd(func: Callable[[np.ndarray], float], x: np.ndarray, step_size: float,
-                               selection_vector_i: np.ndarray, selection_vector_j: np.ndarray) -> float:
+def _compute_2nd_derivative_fd(func: Callable[[np.ndarray], float],
+                               x: np.ndarray,
+                               step_size: float,
+                               selection_vector_i: np.ndarray,
+                               selection_vector_j: np.ndarray) -> float:
     step_size_selection_vector_i = step_size * selection_vector_i
     step_size_selection_vector_j = step_size * selection_vector_j
 
