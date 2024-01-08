@@ -11,7 +11,7 @@ from data import DataSetName, get_option_data
 
 
 def main():
-    option_data = get_option_data(DataSetName.tsla_15_jun_2018)
+    option_data = get_option_data(DataSetName.dax_13_jun_2000)
     raw_data = qproc.create_q_proc(option_prices=option_data.option_prices,
                                    price_unit=option_data.price_unit,
                                    strikes=option_data.strikes,
@@ -38,10 +38,13 @@ def create_plots(raw_data: qproc.OptionQuoteProcessor,
     
     raw_vol_surface.calibrate()
     filtered_vol_surface.calibrate()
-    plot_vol_smiles(raw_data=raw_data, raw_vol_surface=raw_vol_surface, filtered_vol_surface=filtered_vol_surface,
-                    strike_unit=qproc.StrikeUnit.log_moneyness, price_unit=qproc.PriceUnit.vol)
-    plot_vol_smiles(raw_data=raw_data, raw_vol_surface=raw_vol_surface, filtered_vol_surface=filtered_vol_surface,
-                    strike_unit=qproc.StrikeUnit.strike, price_unit=qproc.PriceUnit.call)
+    # plot_vol_smiles(raw_data=raw_data, raw_vol_surface=raw_vol_surface, filtered_vol_surface=filtered_vol_surface,
+    #                 strike_unit=qproc.StrikeUnit.log_moneyness, price_unit=qproc.PriceUnit.vol)
+    # plot_vol_smiles(raw_data=raw_data, raw_vol_surface=raw_vol_surface, filtered_vol_surface=filtered_vol_surface,
+    #                 strike_unit=qproc.StrikeUnit.strike, price_unit=qproc.PriceUnit.call)
+
+    plot_risk_neutral_density(raw_data=raw_data, raw_vol_surface=raw_vol_surface,
+                              filtered_vol_surface=filtered_vol_surface)
 
 
 def plot_vol_smiles(raw_data: qproc.OptionQuoteProcessor,
@@ -65,15 +68,40 @@ def plot_vol_smiles(raw_data: qproc.OptionQuoteProcessor,
                                                strike_unit=strike_unit)
         plt.plot(strikes, raw_prices, color='red', label='No filter')
         
-        filtered_prices = filtered_vol_surface.get_price(price_unit=price_unit, expiry=expiry, strike=strikes, 
+        filtered_prices = filtered_vol_surface.get_price(price_unit=price_unit, expiry=expiry, strike=strikes,
                                                          strike_unit=strike_unit)
-        plt.plot(strikes, filtered_prices, color='cornflowerblue', label='Arbitrage filter')
+        plt.plot(strikes, filtered_prices, color='cornflowerblue', label='Arbitrage filter', ls='--')
 
         mid_prices = quotes_for_expiry[qproc.MID_KEY].values
         plt.scatter(strikes_for_quotes, mid_prices, marker='o', color='black', label='Quotes')
 
         plt.xlabel(strike_unit.name)
         plt.ylabel(price_unit.name)
+        plt.legend()
+
+
+def plot_risk_neutral_density(raw_data: qproc.OptionQuoteProcessor,
+                              raw_vol_surface: volsurface.VolSurface,
+                              filtered_vol_surface: volsurface.VolSurface):
+
+    quotes = raw_data.get_quotes(strike_unit=qproc.StrikeUnit.strike, price_unit=qproc.PriceUnit.call)
+    expiries = quotes[qproc.EXPIRY_KEY].unique()
+    for i in range(expiries.size):
+        plt.figure()
+
+        expiry = expiries[i]
+        quotes_for_expiry = quotes.loc[quotes[qproc.EXPIRY_KEY] == expiry]
+        strikes_for_quotes = quotes_for_expiry[qproc.STRIKE_KEY].values
+        x = np.linspace(start=strikes_for_quotes[0] * 1.01, stop=strikes_for_quotes[-1] / 1.01, num=500)
+
+        raw_density = raw_vol_surface.compute_risk_neutral_density(expiry=expiry, x=x)
+        plt.plot(x, raw_density, color='red', label='No filter')
+
+        filtered_density = filtered_vol_surface.compute_risk_neutral_density(expiry=expiry, x=x)
+        plt.plot(x, filtered_density, color='cornflowerblue', label='Arbitrage filter', ls='--')
+
+        plt.xlabel('$S_T$')
+        plt.ylabel('$q(S_T)$', rotation=0)
         plt.legend()
 
 
