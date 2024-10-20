@@ -1,9 +1,9 @@
 """ This module implements the VolSurface class. """
 
 import numpy as np
-import numcomp as nc
+import computils as nc
 from typing import Optional, List, Tuple, final
-from numcomp import InterpolationType, Interpolator, create_interpolator, ExtrapolationType
+from computils import InterpolationType, Interpolator, create_interpolator, ExtrapolationType
 from qproc import ScalarOrArray, PriceUnit, StrikeUnit, OptionQuoteProcessor, FilterType, EXPIRY_KEY, STRIKE_KEY, \
     MID_KEY
 from ..globals import VolSurface

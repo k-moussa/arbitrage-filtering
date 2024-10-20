@@ -1,4 +1,4 @@
-""" This module serves as the interface of the numcomp package.
+""" This module serves as the interface of the computils package.
 
     References:
         FC80: Frederick N. Fritsch and Ralph E. Carlson. Monotone piecewise cubic interpolation. SIAM Journal on

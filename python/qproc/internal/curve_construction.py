@@ -1,7 +1,7 @@
 """ This module implements the rate and forward curves. """
 
 import numpy as np
-from numcomp import create_interpolator, Interpolator, InterpolationType, ExtrapolationType
+from computils import create_interpolator, Interpolator, InterpolationType, ExtrapolationType
 from ..globals import *
 
 

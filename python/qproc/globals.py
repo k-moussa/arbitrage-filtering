@@ -4,7 +4,7 @@ import pandas as pd
 from enum import Enum
 from abc import ABC, abstractmethod
 from typing import final, Optional, Tuple
-from numcomp import ScalarOrArray
+from computils import ScalarOrArray
 
 CALENDAR_DAYS_YEAR: final = 365
 EXPIRY_KEY: final = 'expiry'

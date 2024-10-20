@@ -1,7 +1,7 @@
 """ This module allows for creating instances of the VolSurface class. """
 
 from typing import Optional
-from numcomp import InterpolationType
+from computils import InterpolationType
 from qproc import OptionQuoteProcessor, FilterType
 from .globals import VolSurface
 from .internal.vol_surface import InternalVolSurface

@@ -4,7 +4,7 @@ import numpy as np
 from enum import Enum
 from bisect import bisect_left
 from typing import List, Callable, Tuple, Union
-import numcomp as nc
+import computils as nc
 
 
 class FuncInterType(Enum):

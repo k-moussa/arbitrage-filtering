@@ -1,7 +1,7 @@
 """ This module collects the exposed types from the package. """
 
 from abc import ABC, abstractmethod
-from numcomp import ScalarOrArray
+from computils import ScalarOrArray
 from qproc import StrikeUnit, PriceUnit
 
 

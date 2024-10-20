@@ -3,7 +3,7 @@
 import numpy as np
 from typing import final
 from copy import copy, deepcopy
-from numcomp import ScalarOrArray
+from computils import ScalarOrArray
 from ..globals import StrikeUnit, PriceUnit
 from .quote_structures import Quote
 from .volatility_functions import implied_vol_for_discounted_option, discounted_black

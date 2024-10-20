@@ -3,7 +3,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 # from typing import List, Union
-import numcomp as nc
+import computils as nc
 
 
 def main():

@@ -4,7 +4,7 @@
 
 import numpy as np
 from typing import List, final
-from numcomp.sorting_algorithms import find_lt, find_gt
+from computils.sorting_algorithms import find_lt, find_gt
 from ..quote_structures import Quote, QuoteSlice, QuoteSurface
 from ...globals import StrikeUnit, PriceUnit
 
