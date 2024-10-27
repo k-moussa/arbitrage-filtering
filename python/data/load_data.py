@@ -18,6 +18,7 @@ class DataSetName(Enum):
     spx500_5_feb_2018 = 2
     tsla_15_jun_2018 = 3
     dax_13_jun_2000 = 4
+    dax_13_jun_2000_3days = 5
 
 
 class OptionDataSet:
@@ -61,6 +62,8 @@ def get_option_data(ds_name: DataSetName) -> OptionDataSet:
         return get_tsla_ds()
     elif ds_name is DataSetName.dax_13_jun_2000:
         return get_dax_ds()
+    elif ds_name is DataSetName.dax_13_jun_2000_3days:
+        return get_dax_3days_ds()
     else:
         raise RuntimeError(f"get_data_set not implemented for data_set_name {ds_name.name}.")
 
@@ -108,6 +111,18 @@ def get_tsla_ds() -> OptionDataSet:
                          forwards=np.array([forward_price]),
                          rates=np.array([0.0]),  # rate not given; assume rate of zero
                          name=DataSetName.tsla_15_jun_2018)
+
+
+def get_dax_3days_ds() -> OptionDataSet:
+    dax_3days_ds = get_dax_ds()
+    dax_3days_ds.forwards = np.array([dax_3days_ds.forwards[0]])
+    dax_3days_ds.rates = np.array([dax_3days_ds.rates[0]])
+
+    init_expiry = np.min(dax_3days_ds.expiries)
+    dax_3days_ds.option_prices = dax_3days_ds.option_prices[dax_3days_ds.expiries == init_expiry]
+    dax_3days_ds.strikes = dax_3days_ds.strikes[dax_3days_ds.expiries == init_expiry]
+    dax_3days_ds.expiries = dax_3days_ds.expiries[dax_3days_ds.expiries == init_expiry]
+    return dax_3days_ds
 
 
 def get_dax_ds() -> OptionDataSet:
