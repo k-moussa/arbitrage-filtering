@@ -39,3 +39,15 @@ class VolSurface(ABC):
         :param x: value(s) of the underlying asset at expiry for which to compute the risk-neutral density.
         :return: risk-neutral density values: an object of the same time and dimension as x.
         """
+
+    @abstractmethod
+    def compute_risk_neutral_cdf(self,
+                                 expiry: float,
+                                 x: ScalarOrArray) -> ScalarOrArray:
+        """ Computes the risk-neutral cumulative distribution function (CDF) for values of the underlying asset at
+        expiry.
+
+        :param expiry:
+        :param x: value(s) of the underlying asset at expiry for which to compute the risk-neutral density.
+        :return: risk-neutral CDF values: an object of the same time and dimension as x.
+        """

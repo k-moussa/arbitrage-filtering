@@ -178,6 +178,18 @@ class InternalVolSurface(VolSurface):
         density_values = nc.compute_derivative(func=func, x=x, order=2)
         return density_values
 
+    def compute_risk_neutral_cdf(self,
+                                 expiry: float,
+                                 x: ScalarOrArray) -> ScalarOrArray:
+
+        if not self._is_calibrated():
+            raise RuntimeError("calibrate() must be called before this function.")
+
+        func = lambda z: self._compute_undiscounted_call_price(strike=z, expiry=expiry)
+        fo_derivatives = nc.compute_derivative(func=func, x=x, order=1)
+        cdf_values = 1.0 + fo_derivatives
+        return cdf_values
+
     def _compute_undiscounted_call_price(self,
                                          strike: ScalarOrArray,
                                          expiry: float) -> ScalarOrArray:
