@@ -14,7 +14,7 @@ RMSE_KEY: final = "RMSE"
 
 
 def main():
-    option_data = get_option_data(DataSetName.dax_13_jun_2000)
+    option_data = get_option_data(DataSetName.tsla_15_jun_2018)
     raw_data = qproc.create_q_proc(option_prices=option_data.option_prices,
                                    price_unit=option_data.price_unit,
                                    strikes=option_data.strikes,
@@ -26,13 +26,13 @@ def main():
     # The results from the discard filter may depend on the extrapolation method of the final points are discarded.
     extrapolation_param = 0.5
     price_unit = qproc.PriceUnit.vol
-    smile_inter_types = [vs.InterpolationType.ncs, vs.InterpolationType.ccs, vs.InterpolationType.pmc,
+    smile_inter_types = [vs.InterpolationType.linear, vs.InterpolationType.ncs, vs.InterpolationType.ccs,
                          vs.InterpolationType.pchip]
     print_pricing_errors(price_unit=price_unit, raw_data=raw_data, smile_inter_types=smile_inter_types,
                          filter_type=qproc.FilterType.discard, extrapolation_param=extrapolation_param)
 
     # The results only depend on the interpolation method when the discard filter is used
-    smoothness_params = [0.01, 0.05, 0.1, 0.3, 0.5]
+    smoothness_params = [0.0, 0.1, 0.2, 0.5]
     for sm in smoothness_params:
         print_pricing_errors(price_unit=price_unit, raw_data=raw_data, smile_inter_types=[vs.InterpolationType.pchip],
                              filter_type=qproc.FilterType.strike, filter_smoothness_param=sm)

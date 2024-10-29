@@ -6,7 +6,7 @@ from data import DataSetName, get_option_data
 
 
 def main():
-    option_data = get_option_data(DataSetName.dax_13_jun_2000)
+    option_data = get_option_data(DataSetName.dax_13_jun_2000_3days)
     quote_processor = qproc.create_q_proc(option_prices=option_data.option_prices,
                                           price_unit=option_data.price_unit,
                                           strikes=option_data.strikes,
@@ -15,8 +15,8 @@ def main():
                                           rates=option_data.rates,
                                           spot=option_data.spot)
 
-    strike_unit = qproc.StrikeUnit.log_moneyness
-    price_unit = qproc.PriceUnit.total_var
+    strike_unit = qproc.StrikeUnit.strike
+    price_unit = qproc.PriceUnit.vol
     # qproc.print_filter_errors(quote_processor=quote_processor,
     #                           strike_unit=strike_unit,
     #                           price_unit=price_unit,
